@@ -1,0 +1,53 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  ci:
+    name: Lint, Typecheck & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck (shared)
+        run: pnpm --filter @inumaki/shared typecheck
+
+      - name: Typecheck (web)
+        run: pnpm --filter @inumaki/web typecheck
+
+      - name: Typecheck (desktop)
+        run: pnpm --filter @inumaki/desktop typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build web
+        run: pnpm build:web
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://test:test@localhost:5432/inumaki_test' }}
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: test-secret-for-build
+          GOOGLE_CLIENT_ID: placeholder
+          GOOGLE_CLIENT_SECRET: placeholder
+          OPENAI_API_KEY: placeholder

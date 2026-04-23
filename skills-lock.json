@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "skills": {
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "516bd2154eb843a8240e43d5b285229129853114ad7075a5e141e1c08e408c84"
+    },
+    "frontend-enhancer": {
+      "source": "ailabs-393/ai-labs-claude-skills",
+      "sourceType": "github",
+      "computedHash": "e7b6365b3725efd01be21c663505ea77db833b33adc4edd261f6f246b1aea439"
+    },
+    "frontend-skill": {
+      "source": "openai/skills",
+      "sourceType": "github",
+      "computedHash": "bcf97f1a6873800d57c6afba4f7645b3c88f4f1eaa012f73e053c123eb116b74"
+    },
+    "nextjs-best-practices": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "3c40a7ea604cdbee772bd7b3efe59aafd6fedf62252a76d43b9f835a6adc92cd"
+    },
+    "tailwind-design-system": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "f54f39ce967af3a4bba1f662c3600f0253467508d5fbbc7c545c67e102da2253"
+    }
+  }
+}

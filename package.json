@@ -1,0 +1,31 @@
+{
+  "name": "inumaki-ai",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm run dev:web",
+    "dev:web": "pnpm --filter @inumaki/web dev",
+    "dev:desktop": "pnpm --filter @inumaki/desktop dev",
+    "build:web": "pnpm --filter @inumaki/web build",
+    "build:desktop": "pnpm --filter @inumaki/desktop build",
+    "build:all": "pnpm run build:web && pnpm run build:desktop",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "docker:up": "docker compose up -d",
+    "docker:build": "docker compose build",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

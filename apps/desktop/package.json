@@ -1,0 +1,56 @@
+{
+  "name": "@inumaki/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/main/main.js",
+  "scripts": {
+    "dev": "concurrently \"pnpm dev:vite\" \"pnpm dev:electron\"",
+    "dev:vite": "vite",
+    "dev:electron": "wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
+    "build": "vite build && electron-builder",
+    "build:win": "vite build && electron-builder --win",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@inumaki/shared": "workspace:*",
+    "electron-store": "^11.0.2",
+    "electron-updater": "^6.8.3",
+    "node-global-key-listener": "^0.3.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "electron": "^41.2.1",
+    "electron-builder": "^26.8.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.8",
+    "vite-plugin-electron": "^0.29.1",
+    "wait-on": "^9.0.5"
+  },
+  "build": {
+    "appId": "ai.inumaki.desktop",
+    "productName": "Inumaki AI",
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "files": [
+      "dist/**/*",
+      "assets/**/*"
+    ],
+    "extraResources": [],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
