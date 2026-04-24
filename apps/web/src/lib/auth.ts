@@ -1,7 +1,7 @@
 // apps/web/src/lib/auth.ts
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
-import Resend from 'next-auth/providers/resend';
+import Nodemailer from 'next-auth/providers/nodemailer';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { db } from '../db';
 import { users, invites, userPreferences } from '../db/schema';
@@ -17,6 +17,10 @@ const ALLOWED_EMAILS = (process.env.ALLOWED_EMAILS ?? '')
   .split(',')
   .map((e) => e.trim())
   .filter(Boolean);
+
+const SMTP_PORT = Number(process.env.SMTP_PORT ?? 587);
+const SMTP_SECURE =
+  process.env.SMTP_SECURE === 'true' || (process.env.SMTP_SECURE == null && SMTP_PORT === 465);
 
 function isEmailAllowed(email: string): boolean {
   if (ALLOWED_EMAILS.includes(email)) return true;
@@ -42,10 +46,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
 
-    // Magic link via Resend (or any nodemailer-compatible provider)
-    Resend({
-      apiKey: process.env.RESEND_API_KEY!,
-      from: process.env.EMAIL_FROM!,
+    // Magic link via SMTP
+    Nodemailer({
+      server: {
+        host: process.env.SMTP_HOST!,
+        port: SMTP_PORT,
+        secure: SMTP_SECURE,
+        auth: {
+          user: process.env.SMTP_USER!,
+          pass: process.env.SMTP_PASS!,
+        },
+      },
+      from: process.env.SMTP_FROM ?? process.env.SMTP_USER!,
     }),
   ],
 
