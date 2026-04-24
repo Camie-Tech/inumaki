@@ -40,6 +40,7 @@ It was auto-generated from a first-pass repository scan and should be refined as
 ## Recent Decisions
 - Project memory is stored in `.camie/project-memory.md` and is injected into every Camie session start.
 - Update this file whenever you learn durable facts that should reduce future re-discovery cost.
+- Pull requests should target `dev`; do not open routine PRs directly against `main`.
 
 ## Memory Maintenance Rules
 - Keep this file concise, factual, and repo-specific.
