@@ -17,7 +17,7 @@ export default function SignInPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const result = await signIn('resend', { email, callbackUrl, redirect: false });
+    const result = await signIn('nodemailer', { email, callbackUrl, redirect: false });
     if (result?.error) {
       setError('Sign-in failed. Make sure this email is allowed.');
     } else {
