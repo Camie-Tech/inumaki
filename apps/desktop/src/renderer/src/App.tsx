@@ -38,6 +38,14 @@ export default function App() {
     return cleanup;
   }, []);
 
+  useEffect(() => {
+    const cleanup = window.electronAPI?.onDeepLinkToken?.(() => {
+      setAuthed(false);
+      setPage('auth');
+    });
+    return cleanup;
+  }, []);
+
   if (checkingAuth) {
     return (
       <div
@@ -70,7 +78,12 @@ export default function App() {
         style={{ height: '100vh', background: 'var(--bg)', borderRadius: 12, overflow: 'hidden' }}
       >
         <TitleBar onSettings={() => {}} hideSettings />
-        <AuthPanel onAuthed={() => setAuthed(true)} />
+        <AuthPanel
+          onAuthed={() => {
+            setAuthed(true);
+            setPage('main');
+          }}
+        />
       </div>
     );
   }

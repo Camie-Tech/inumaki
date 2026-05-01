@@ -1,5 +1,5 @@
 // apps/desktop/src/renderer/src/pages/AuthPanel.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '../hooks/useStore';
 
 declare const __API_SERVER__: string;
@@ -10,6 +10,7 @@ interface AuthPanelProps {
 
 export function AuthPanel({ onAuthed }: AuthPanelProps) {
   const { get, set } = useStore();
+  const handledAuthPayloadRef = useRef('');
   const [apiBase, setApiBase] = useState(
     typeof __API_SERVER__ !== 'undefined' ? __API_SERVER__ : 'http://localhost:3000'
   );
@@ -26,62 +27,68 @@ export function AuthPanel({ onAuthed }: AuthPanelProps) {
     window.electronAPI?.openAuth?.(signInUrl);
   };
 
+  async function handleDesktopAuthPayload({
+    token,
+    code,
+    base: deepBase,
+  }: {
+    token?: string | null;
+    code?: string | null;
+    base?: string | null;
+  }) {
+    setIsWaiting(true);
+    const incomingToken = token?.trim() ?? '';
+    const incomingCode = code?.trim() ?? '';
+
+    if (!incomingToken && !incomingCode) {
+      setIsWaiting(false);
+      return;
+    }
+
+    const payloadKey = `${incomingCode}:${incomingToken}`;
+    if (payloadKey === handledAuthPayloadRef.current) return;
+    handledAuthPayloadRef.current = payloadKey;
+
+    const base = (deepBase?.trim() || ((await get('apiBase')) as string) || apiBase).replace(
+      /\/$/,
+      ''
+    );
+    try {
+      await set('apiBase', base);
+      let sessionToken = incomingToken;
+
+      if (incomingCode) {
+        const exchangeData = await window.electronAPI.exchangeDesktopAuthCode(base, incomingCode);
+        if (!exchangeData.valid || !exchangeData.token) {
+          throw new Error('Desktop auth exchange rejected');
+        }
+
+        sessionToken = exchangeData.token as string;
+      } else {
+        const verifyData = await window.electronAPI.verifyDesktopAuthToken(base, sessionToken);
+        if (!verifyData.valid) throw new Error('Token rejected');
+      }
+
+      await set('authToken', sessionToken);
+      setApiBase(base);
+      onAuthed();
+    } catch {
+      handledAuthPayloadRef.current = '';
+      setError('Authentication failed. Please try again.');
+      setIsWaiting(false);
+    }
+  }
+
   useEffect(() => {
     if (window.electronAPI?.onDeepLinkToken) {
-      const cleanup = window.electronAPI.onDeepLinkToken(
-        async ({ token, code, base: deepBase }) => {
-          setIsWaiting(true);
-          const incomingToken = token?.trim() ?? '';
-          const incomingCode = code?.trim() ?? '';
+      const cleanup = window.electronAPI.onDeepLinkToken((payload) => {
+        void handleDesktopAuthPayload(payload);
+      });
 
-          if (!incomingToken && !incomingCode) {
-            setIsWaiting(false);
-            return;
-          }
+      window.electronAPI.getPendingAuthLink?.().then((payload) => {
+        if (payload) void handleDesktopAuthPayload(payload);
+      });
 
-          const base = (deepBase?.trim() || ((await get('apiBase')) as string) || apiBase).replace(
-            /\/$/,
-            ''
-          );
-          try {
-            await set('apiBase', base);
-            let sessionToken = incomingToken;
-
-            if (incomingCode) {
-              const exchangeRes = await fetch(`${base}/api/auth/desktop/exchange`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: incomingCode }),
-              });
-
-              if (!exchangeRes.ok) throw new Error('Desktop auth exchange failed');
-              const exchangeData = await exchangeRes.json();
-              if (!exchangeData.valid || !exchangeData.token) {
-                throw new Error('Desktop auth exchange rejected');
-              }
-
-              sessionToken = exchangeData.token as string;
-            } else {
-              const verifyRes = await fetch(`${base}/api/auth/verify-token`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: sessionToken }),
-              });
-
-              if (!verifyRes.ok) throw new Error('Invalid token');
-              const verifyData = await verifyRes.json();
-              if (!verifyData.valid) throw new Error('Token rejected');
-            }
-
-            await set('authToken', sessionToken);
-            setApiBase(base);
-            onAuthed();
-          } catch {
-            setError('Authentication failed. Please try again.');
-            setIsWaiting(false);
-          }
-        }
-      );
       return cleanup;
     }
   }, []);

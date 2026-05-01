@@ -35,6 +35,13 @@ let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let recorder: AudioRecorder | null = null;
 let currentHotkey = store.get('hotkey', 'Control+Shift+Space') as string;
+let pendingDeepLink:
+  | {
+      token?: string | null;
+      code?: string | null;
+      base?: string | null;
+    }
+  | null = null;
 
 // ─── Window ───────────────────────────────────────────────────────
 function createMainWindow() {
@@ -91,10 +98,11 @@ function handleDeepLink(url: string) {
       const token = urlObj.searchParams.get('token');
       const code = urlObj.searchParams.get('code');
       const base = urlObj.searchParams.get('base');
-      if ((token || code) && mainWindow) {
-        mainWindow.webContents.send('deep-link-token', { token, code, base });
-        mainWindow.show();
-        mainWindow.focus();
+      if (token || code) {
+        pendingDeepLink = { token, code, base };
+        mainWindow?.webContents.send('deep-link-token', pendingDeepLink);
+        mainWindow?.show();
+        mainWindow?.focus();
       }
     }
   } catch (err) {
@@ -262,6 +270,40 @@ function setupIpc() {
   ipcMain.handle('store-get', (_event, key: string) => store.get(key));
   ipcMain.handle('store-set', (_event, key: string, value: unknown) => {
     store.set(key, value);
+  });
+
+  ipcMain.handle('auth-get-pending-link', () => {
+    const payload = pendingDeepLink;
+    pendingDeepLink = null;
+    return payload;
+  });
+
+  ipcMain.handle('auth-exchange-code', async (_event, base: string, code: string) => {
+    const res = await fetch(`${base.replace(/\/$/, '')}/api/auth/desktop/exchange`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(typeof data.error === 'string' ? data.error : 'Desktop auth exchange failed');
+    }
+    return data;
+  });
+
+  ipcMain.handle('auth-verify-token', async (_event, base: string, token: string) => {
+    const res = await fetch(`${base.replace(/\/$/, '')}/api/auth/verify-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(typeof data.error === 'string' ? data.error : 'Invalid token');
+    }
+    return data;
   });
 
   // Open external auth

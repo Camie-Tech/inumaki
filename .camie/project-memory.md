@@ -36,6 +36,7 @@ It was auto-generated from a first-pass repository scan and should be refined as
 ## Known Risks
 - Local shell/env values can affect NextAuth and dev startup; ensure `NODE_ENV` is standard, `PORT` is free, `NEXTAUTH_URL`/`AUTH_URL` match the served origin, and `DATABASE_URL` is PostgreSQL, not SQLite/file.
 - Auth sign-in is intentionally blocked unless the email matches `ALLOWED_EMAIL_DOMAINS`, `ALLOWED_EMAILS`, or a pending invite, and existing inactive users are rejected.
+- Desktop auth handoff buffers pending `inumaki://auth` deep-link payloads in the Electron main process and performs desktop token exchange/verification through main-process IPC to avoid renderer CORS and listener-race failures.
 
 ## Recent Decisions
 - Project memory is stored in `.camie/project-memory.md` and is injected into every Camie session start.

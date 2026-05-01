@@ -1,5 +1,6 @@
 // apps/desktop/src/main/preload.ts
 import { contextBridge, ipcRenderer } from 'electron';
+import type { IpcRendererEvent } from 'electron';
 import type { IpcChannel, RecordingStateChange } from '@inumaki/shared';
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -45,11 +46,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // ─── Auth ───────────────────────────────────────────────────────
   openAuth: (url: string) => ipcRenderer.send('open-auth', url),
+  getPendingAuthLink: () => ipcRenderer.invoke('auth-get-pending-link'),
+  exchangeDesktopAuthCode: (base: string, code: string) =>
+    ipcRenderer.invoke('auth-exchange-code', base, code),
+  verifyDesktopAuthToken: (base: string, token: string) =>
+    ipcRenderer.invoke('auth-verify-token', base, token),
   onDeepLinkToken: (
     cb: (payload: { token?: string | null; code?: string | null; base?: string | null }) => void
   ) => {
-    ipcRenderer.on('deep-link-token', (_e, payload) => cb(payload));
-    return () => ipcRenderer.removeAllListeners('deep-link-token');
+    const listener = (
+      _e: IpcRendererEvent,
+      payload: { token?: string | null; code?: string | null; base?: string | null }
+    ) => cb(payload);
+    ipcRenderer.on('deep-link-token', listener);
+    return () => ipcRenderer.removeListener('deep-link-token', listener);
   },
 });
 
@@ -70,6 +80,13 @@ declare global {
       storeGet: (key: string) => Promise<unknown>;
       storeSet: (key: string, value: unknown) => Promise<void>;
       openAuth: (url: string) => void;
+      getPendingAuthLink: () => Promise<{
+        token?: string | null;
+        code?: string | null;
+        base?: string | null;
+      } | null>;
+      exchangeDesktopAuthCode: (base: string, code: string) => Promise<any>;
+      verifyDesktopAuthToken: (base: string, token: string) => Promise<any>;
       onDeepLinkToken: (
         cb: (payload: { token?: string | null; code?: string | null; base?: string | null }) => void
       ) => () => void;
