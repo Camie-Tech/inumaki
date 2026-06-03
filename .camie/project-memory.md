@@ -38,8 +38,9 @@ It was auto-generated from a first-pass repository scan and should be refined as
 - Auth sign-in is intentionally blocked unless the email matches `ALLOWED_EMAIL_DOMAINS`, `ALLOWED_EMAILS`, or a pending invite, and existing inactive users are rejected.
 
 ## Recent Decisions
-- Project memory is stored in `.camie/project-memory.md` and is injected into every Camie session start.
-- Update this file whenever you learn durable facts that should reduce future re-discovery cost.
+- Project memory is stored in `.camie/project-memory.md`, which is the canonical durable memory for this top-level T3 project.
+- Read this file at the beginning of every Codex session before making Inumaki-specific assumptions.
+- Update this file at the end of each substantive turn when durable Inumaki-specific information is learned.
 
 ## Memory Maintenance Rules
 - Keep this file concise, factual, and repo-specific.
