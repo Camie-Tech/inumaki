@@ -46,3 +46,9 @@ coverage/
 # Temp
 tmp/
 temp/
+.vercel
+
+# Local downloaded release binaries (large, fetched from GitHub releases)
+releases/
+.camie/tmp-*.mjs
+.camie/*.cjs

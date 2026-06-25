@@ -1,11 +1,26 @@
-// apps/web/src/app/auth/signin/page.tsx
 'use client';
 
+import { Suspense, useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 export default function SignInPage() {
+  return (
+    <Suspense fallback={<SignInLoading />}>
+      <SignInContent />
+    </Suspense>
+  );
+}
+
+function SignInLoading() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-4">
+      <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-800 border-t-violet-500" />
+    </main>
+  );
+}
+
+function SignInContent() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
@@ -31,16 +46,15 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
+    <main className="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="mb-10 text-center">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-violet-500 flex items-center justify-center">
+          <div className="mb-3 inline-flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
-                className="w-5 h-5 text-white"
+                className="h-5 w-5 text-white"
                 stroke="currentColor"
                 strokeWidth={2}
               >
@@ -49,32 +63,20 @@ export default function SignInPage() {
                 <line x1="12" y1="19" x2="12" y2="22" />
               </svg>
             </div>
-            <span className="text-white text-xl font-semibold tracking-tight">Inumaki AI</span>
+            <span className="text-xl font-semibold tracking-tight text-white">Inumaki AI</span>
           </div>
-          <p className="text-zinc-400 text-sm">
-            Internal voice productivity · Authorized access only
-          </p>
+          <p className="text-sm text-zinc-400">Internal voice productivity. Authorized access only.</p>
         </div>
 
         {sent ? (
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 text-center">
-            <div className="w-10 h-10 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-3">
-              <svg
-                className="w-5 h-5 text-green-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-green-500/20 bg-green-500/10">
+              <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p className="text-white font-medium mb-1">Check your email</p>
-            <p className="text-zinc-400 text-sm">
+            <p className="mb-1 font-medium text-white">Check your email</p>
+            <p className="text-sm text-zinc-400">
               We sent a sign-in link to <span className="text-violet-400">{email}</span>
             </p>
           </div>
@@ -86,22 +88,20 @@ export default function SignInPage() {
               </div>
             )}
 
-            {/* Google */}
             <button
               onClick={handleGoogle}
-              className="w-full flex items-center justify-center gap-3 rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white py-2.5 px-4 text-sm font-medium transition-colors"
+              className="flex w-full items-center justify-center gap-3 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
             >
               <GoogleIcon />
               Continue with Google Workspace
             </button>
 
-            <div className="relative flex items-center gap-3 my-4">
-              <div className="flex-1 h-px bg-zinc-800" />
-              <span className="text-zinc-600 text-xs">or</span>
-              <div className="flex-1 h-px bg-zinc-800" />
+            <div className="relative my-4 flex items-center gap-3">
+              <div className="h-px flex-1 bg-zinc-800" />
+              <span className="text-xs text-zinc-600">or</span>
+              <div className="h-px flex-1 bg-zinc-800" />
             </div>
 
-            {/* Magic link */}
             <form onSubmit={handleMagicLink} className="space-y-3">
               <input
                 type="email"
@@ -109,22 +109,20 @@ export default function SignInPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 py-2.5 px-4 text-sm focus:outline-none focus:border-violet-500 transition-colors"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-violet-500 focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white py-2.5 px-4 text-sm font-medium transition-colors"
+                className="w-full rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-violet-500 disabled:opacity-50"
               >
-                {loading ? 'Sending…' : 'Continue with Email'}
+                {loading ? 'Sending...' : 'Continue with Email'}
               </button>
             </form>
           </div>
         )}
 
-        <p className="text-center text-zinc-600 text-xs mt-8">
-          Access restricted to approved internal users
-        </p>
+        <p className="mt-8 text-center text-xs text-zinc-600">Access restricted to approved internal users</p>
       </div>
     </main>
   );
@@ -132,7 +130,7 @@ export default function SignInPage() {
 
 function GoogleIcon() {
   return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24">
+    <svg className="h-4 w-4" viewBox="0 0 24 24">
       <path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
         fill="#4285F4"

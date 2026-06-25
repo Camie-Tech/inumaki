@@ -6,7 +6,14 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
 
   // Public paths
-  const publicPaths = ['/', '/auth/signin', '/auth/verify', '/auth/error', '/api/auth'];
+  const publicPaths = [
+    '/',
+    '/auth/signin',
+    '/auth/verify',
+    '/auth/error',
+    '/api/auth',
+    '/api/download',
+  ];
   if (publicPaths.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }

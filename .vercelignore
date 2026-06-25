@@ -1,0 +1,12 @@
+.git
+.next
+.logs
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/*.tsbuildinfo
+releases
+apps/desktop
+docs
+*.log
