@@ -19,9 +19,7 @@ import { captureForegroundWindow, pasteText } from './windows-input';
 
 // ─── Constants ────────────────────────────────────────────────────
 const isDev = process.env.NODE_ENV === 'development';
-const RENDERER_URL = isDev
-  ? 'http://localhost:5173'
-  : `file://${path.join(__dirname, '../../renderer/index.html')}`;
+const DEV_RENDERER_URL = 'http://localhost:5173';
 
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
@@ -59,7 +57,13 @@ function createMainWindow() {
     },
   });
 
-  mainWindow.loadURL(RENDERER_URL);
+  if (isDev) {
+    mainWindow.loadURL(DEV_RENDERER_URL);
+  } else {
+    // Packaged: the renderer is bundled at dist/renderer; main runs from
+    // dist/main, so the built index.html is one level up under renderer/.
+    mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+  }
 
   mainWindow.on('ready-to-show', () => {
     if (store.get('startMinimized', false)) return;

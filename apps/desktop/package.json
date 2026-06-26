@@ -1,7 +1,9 @@
 {
   "name": "@inumaki/desktop",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
+  "description": "Inumaki AI — voice-to-text dictation for Windows.",
+  "author": "Camie Tech",
   "main": "dist/main/main.js",
   "scripts": {
     "dev": "concurrently \"pnpm dev:vite\" \"pnpm dev:electron\"",
@@ -36,12 +38,15 @@
   "build": {
     "appId": "ai.inumaki.desktop",
     "productName": "Inumaki AI",
+    "directories": {
+      "output": "release"
+    },
     "win": {
       "target": [
         "nsis",
         "portable"
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.png"
     },
     "files": [
       "dist/**/*",

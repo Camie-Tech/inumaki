@@ -34,7 +34,7 @@ export const store = new ElectronStore<StoreSchema>({
     tonePreference: 'neutral',
     startMinimized: false,
     authToken: '',
-    apiBase: 'https://your-inumaki-domain.com',
+    apiBase: 'https://inumaki-five.vercel.app',
   },
   encryptionKey: process.env.STORE_ENCRYPTION_KEY,
 }) as unknown as TypedStore;
