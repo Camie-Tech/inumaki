@@ -14,10 +14,12 @@ export async function GET() {
     const target = asset?.browser_download_url ?? release.html_url ?? INUMAKI_RELEASES_URL;
     const response = NextResponse.redirect(target, 302);
     response.headers.set('Cache-Control', 'no-store');
+    response.headers.set('X-Robots-Tag', 'noindex');
     return response;
   } catch {
     const response = NextResponse.redirect(INUMAKI_RELEASES_URL, 302);
     response.headers.set('Cache-Control', 'no-store');
+    response.headers.set('X-Robots-Tag', 'noindex');
     return response;
   }
 }

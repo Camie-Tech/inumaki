@@ -4,6 +4,10 @@ import { db } from '../../db';
 import { userPreferences, usageLogs } from '../../db/schema';
 import { eq, desc, count } from 'drizzle-orm';
 
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect('/auth/signin');

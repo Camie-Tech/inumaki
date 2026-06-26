@@ -3,6 +3,8 @@ export const INUMAKI_RELEASE_REPO =
 
 export const INUMAKI_RELEASES_URL = `https://github.com/${INUMAKI_RELEASE_REPO}/releases/latest`;
 
+export const INUMAKI_REPO_URL = `https://github.com/${INUMAKI_RELEASE_REPO}`;
+
 export interface GitHubReleaseAsset {
   name: string;
   browser_download_url: string;
@@ -54,6 +56,36 @@ export async function getLatestInumakiRelease(
   }
 
   return (await response.json()) as GitHubRelease;
+}
+
+// Server-side, ISR-cached star count for the OSS repo — the cheapest, highest
+// signal credibility cue for an unknown open-source brand. Fails soft (null).
+export async function getInumakiRepoStars(
+  options: ReleaseFetchOptions = {}
+): Promise<number | null> {
+  try {
+    const fetchOptions: RequestInit & { next?: { revalidate: number } } = {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'inumaki-web',
+      },
+      signal: AbortSignal.timeout(options.timeoutMs ?? 3000),
+    };
+    if (options.cache) fetchOptions.cache = options.cache;
+    if (typeof options.revalidate === 'number') {
+      fetchOptions.next = { revalidate: options.revalidate };
+    }
+
+    const response = await fetch(
+      `https://api.github.com/repos/${INUMAKI_RELEASE_REPO}`,
+      fetchOptions
+    );
+    if (!response.ok) return null;
+    const data = (await response.json()) as { stargazers_count?: number };
+    return typeof data.stargazers_count === 'number' ? data.stargazers_count : null;
+  } catch {
+    return null;
+  }
 }
 
 export function selectWindowsDownloadAsset(release: GitHubRelease): GitHubReleaseAsset | null {

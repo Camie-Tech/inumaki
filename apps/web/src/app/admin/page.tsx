@@ -6,6 +6,10 @@ import { users as usersSchema, invites as invitesSchema, usageLogs } from '../..
 import { eq, desc, count as dCount, sql } from 'drizzle-orm';
 import { AdminClient } from './AdminClient';
 
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 export default async function AdminPage() {
   const session = await auth();
   if (!session?.user) redirect('/auth/signin');
