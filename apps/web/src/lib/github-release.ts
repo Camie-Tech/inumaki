@@ -1,9 +1,21 @@
+// Repo whose latest GitHub release the site serves. Overridable per-environment
+// via INUMAKI_RELEASE_REPO; defaults to the actively-released app repo so the
+// download + version always track the newest published release automatically.
 export const INUMAKI_RELEASE_REPO =
-  process.env.INUMAKI_RELEASE_REPO?.trim() || 'Camie-Tech/inumaki-oss';
+  process.env.INUMAKI_RELEASE_REPO?.trim() || 'Camie-Tech/inumaki';
 
 export const INUMAKI_RELEASES_URL = `https://github.com/${INUMAKI_RELEASE_REPO}/releases/latest`;
 
 export const INUMAKI_REPO_URL = `https://github.com/${INUMAKI_RELEASE_REPO}`;
+
+// Stable, version-less installer asset name. electron-builder emits this exact
+// name on every release, so the GitHub "latest" download URL below always
+// resolves to the newest installer — no API call and no rate limit.
+export const INUMAKI_INSTALLER_ASSET = 'Inumaki-AI-Setup.exe';
+
+// Direct "always latest" download — GitHub redirects /releases/latest/download/
+// to the newest release's matching asset automatically.
+export const INUMAKI_DOWNLOAD_URL = `${INUMAKI_REPO_URL}/releases/latest/download/${INUMAKI_INSTALLER_ASSET}`;
 
 export interface GitHubReleaseAsset {
   name: string;
@@ -88,11 +100,20 @@ export async function getInumakiRepoStars(
   }
 }
 
+// Used only for the displayed size chip / null-state fallback — the download
+// itself goes straight to INUMAKI_DOWNLOAD_URL. Prefers the NSIS installer and
+// ignores the .blockmap / latest.yml metadata; resilient to versioned or stable
+// asset names.
 export function selectWindowsDownloadAsset(release: GitHubRelease): GitHubReleaseAsset | null {
-  const assets = release.assets ?? [];
+  const assets = (release.assets ?? []).filter(
+    (asset) => asset?.name && !/\.blockmap$/i.test(asset.name)
+  );
+  const exes = assets.filter((asset) => /\.exe$/i.test(asset.name));
   return (
-    assets.find((asset) => /inumaki.*x64.*\.exe$/i.test(asset.name)) ??
-    assets.find((asset) => /\.exe$/i.test(asset.name)) ??
+    exes.find((asset) => /setup/i.test(asset.name)) ??
+    exes.find((asset) => /x64/i.test(asset.name) && !/portable/i.test(asset.name)) ??
+    exes.find((asset) => !/portable/i.test(asset.name)) ??
+    exes[0] ??
     assets.find((asset) => /win.*unpacked.*\.zip$/i.test(asset.name)) ??
     assets.find((asset) => /\.zip$/i.test(asset.name)) ??
     null

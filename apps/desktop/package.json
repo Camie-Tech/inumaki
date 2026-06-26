@@ -64,10 +64,10 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "artifactName": "Inumaki-AI-Setup-${version}.${ext}"
+      "artifactName": "Inumaki-AI-Setup.${ext}"
     },
     "portable": {
-      "artifactName": "Inumaki-AI-Portable-${version}.${ext}"
+      "artifactName": "Inumaki-AI-Portable.${ext}"
     }
   }
 }

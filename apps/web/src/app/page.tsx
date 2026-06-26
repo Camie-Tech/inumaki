@@ -3,6 +3,7 @@ import {
   formatReleaseSize,
   getInumakiRepoStars,
   getLatestInumakiRelease,
+  INUMAKI_DOWNLOAD_URL,
   INUMAKI_RELEASES_URL,
   INUMAKI_REPO_URL,
   selectWindowsDownloadAsset,
@@ -234,7 +235,7 @@ export default async function HomePage() {
         operatingSystem: 'Windows 10, Windows 11',
         description: APP_DESCRIPTION,
         url: `${SITE_URL}/`,
-        downloadUrl: `${SITE_URL}/api/download/latest`,
+        downloadUrl: INUMAKI_DOWNLOAD_URL,
         softwareVersion: releaseLabel,
         ...(release?.published_at ? { datePublished: release.published_at } : {}),
         license: 'https://opensource.org/licenses/MIT',
@@ -341,7 +342,7 @@ export default async function HomePage() {
               )}
             </a>
             <a
-              href="/api/download/latest"
+              href={INUMAKI_DOWNLOAD_URL}
               className="group inline-flex min-h-[44px] items-center gap-2 rounded-full bg-[#00aeef] px-5 text-sm font-semibold text-[#04131c] shadow-[0_8px_24px_-8px_rgba(0,174,239,0.7)] transition-all duration-200 hover:bg-[#42caff] hover:shadow-[0_10px_30px_-8px_rgba(66,202,255,0.8)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#42caff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f14]"
             >
               <DownloadGlyph className="transition-transform duration-200 group-hover:translate-y-0.5" />
@@ -397,7 +398,7 @@ export default async function HomePage() {
               {/* CTAs */}
               <div className="ink-reveal ink-delay-4 mt-9 flex flex-col items-center gap-3 sm:flex-row lg:items-start lg:justify-start">
                 <a
-                  href="/api/download/latest"
+                  href={INUMAKI_DOWNLOAD_URL}
                   className="group inline-flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-full bg-[#00aeef] px-8 text-base font-semibold text-[#04131c] shadow-[0_14px_40px_-12px_rgba(0,174,239,0.8)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#42caff] hover:shadow-[0_18px_48px_-12px_rgba(66,202,255,0.9)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#42caff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f14] sm:w-auto"
                 >
                   <DownloadGlyph className="transition-transform duration-200 group-hover:translate-y-0.5" />
@@ -952,7 +953,7 @@ export default async function HomePage() {
             </p>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
-                href="/api/download/latest"
+                href={INUMAKI_DOWNLOAD_URL}
                 className="group inline-flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-full bg-[#00aeef] px-8 text-base font-semibold text-[#04131c] shadow-[0_14px_40px_-12px_rgba(0,174,239,0.8)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#42caff] hover:shadow-[0_18px_48px_-12px_rgba(66,202,255,0.9)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#42caff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f14] sm:w-auto"
               >
                 <DownloadGlyph className="transition-transform duration-200 group-hover:translate-y-0.5" />
@@ -1001,7 +1002,7 @@ export default async function HomePage() {
           </div>
 
           <FooterColumn title="Product">
-            <FooterLink href="/api/download/latest">Download for Windows</FooterLink>
+            <FooterLink href={INUMAKI_DOWNLOAD_URL}>Download for Windows</FooterLink>
             <FooterLink href="#faq">FAQ</FooterLink>
             <FooterLink href="#sysreq-heading">System requirements</FooterLink>
             <FooterLink href={INUMAKI_RELEASES_URL} external>
