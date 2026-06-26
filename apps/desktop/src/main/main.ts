@@ -15,6 +15,7 @@ import path from 'path';
 import { AudioRecorder } from './audio-recorder';
 import { store } from './store';
 import { setupAutoUpdater } from './updater';
+import { captureForegroundWindow, pasteText } from './windows-input';
 
 // ─── Constants ────────────────────────────────────────────────────
 const isDev = process.env.NODE_ENV === 'development';
@@ -189,44 +190,38 @@ function registerHotkey(hotkey: string) {
 
 // ─── Recording ────────────────────────────────────────────────────
 function startRecording() {
-  if (!recorder) return;
+  if (!recorder || recorder.isRecording()) return;
+
+  // Remember the user's focused app NOW (before anything can change focus) so we
+  // can paste back into it later. Fire-and-forget; resolves well before paste.
+  void captureForegroundWindow();
+
   recorder.start();
-  mainWindow?.webContents.send('recording-state-change', {
-    state: 'recording',
-  });
+  // Tell the renderer to actually begin capturing audio (it owns MediaRecorder).
+  mainWindow?.webContents.send('start-recording');
+  mainWindow?.webContents.send('recording-state-change', { state: 'recording' });
   updateTrayMenu('Recording…');
 }
 
-async function stopRecording() {
+function stopRecording() {
   if (!recorder || !recorder.isRecording()) return;
 
+  recorder.stop();
   mainWindow?.webContents.send('recording-state-change', { state: 'processing' });
   updateTrayMenu('Processing…');
 
-  const result = await recorder.stop();
-  if (!result) {
-    mainWindow?.webContents.send('recording-state-change', {
-      state: 'error',
-      message: 'No audio captured',
-    });
-    updateTrayMenu('Error');
-    return;
-  }
-
-  // Send to renderer for API call
-  mainWindow?.webContents.send('process-audio', result);
+  // The renderer holds the captured audio — tell it to stop, encode, and process.
+  // It posts to the API and, on success, calls pasteText/copyText back to main.
+  mainWindow?.webContents.send('process-audio');
 }
 
 // ─── IPC Handlers ────────────────────────────────────────────────
 function setupIpc() {
-  // Paste text into previously focused window
+  // Paste text into the window that was focused when recording started:
+  // write the clipboard and simulate Ctrl+V (Windows), restoring the prior
+  // clipboard afterwards. Best-effort keystroke over a guaranteed clipboard write.
   ipcMain.on('paste-text', (_event, text: string) => {
-    clipboard.writeText(text);
-    // Small delay to let clipboard update
-    setTimeout(() => {
-      // On Windows, simulate Ctrl+V on the previously focused window
-      // The renderer handles auto-paste via robot.js or clipboard only
-    }, 100);
+    void pasteText(text);
   });
 
   // Copy only

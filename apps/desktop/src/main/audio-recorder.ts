@@ -1,22 +1,13 @@
 // apps/desktop/src/main/audio-recorder.ts
-import { desktopCapturer } from 'electron';
-
-export interface AudioResult {
-  audioBase64: string;
-  mimeType: string;
-  durationSeconds: number;
-}
-
+//
+// Recording-state tracker for the global-hotkey flow. The actual audio capture
+// runs in the renderer (MediaRecorder via getUserMedia in useRecorder); the main
+// process only tracks whether a capture is in progress and orchestrates
+// start/stop over IPC ('start-recording' / 'process-audio'). It deliberately
+// does NOT try to return audio — that lives in the renderer.
 export class AudioRecorder {
-  private mediaRecorder: MediaRecorder | null = null;
-  private chunks: Blob[] = [];
-  private startTime: number = 0;
   private recording = false;
-  private stream: MediaStream | null = null;
-
-  // NOTE: MediaRecorder runs in the renderer process.
-  // The main process orchestrates start/stop and receives base64 audio via IPC.
-  // This class acts as a state tracker; actual recording is in recorder-bridge.ts (renderer).
+  private startTime = 0;
 
   isRecording() {
     return this.recording;
@@ -24,10 +15,6 @@ export class AudioRecorder {
 
   setRecording(value: boolean) {
     this.recording = value;
-  }
-
-  setStartTime(time: number) {
-    this.startTime = time;
   }
 
   getElapsed() {
@@ -39,14 +26,12 @@ export class AudioRecorder {
     this.startTime = Date.now();
   }
 
-  async stop(): Promise<AudioResult | null> {
+  // Flip state only; the renderer is signalled separately to stop + process.
+  stop() {
     this.recording = false;
-    // Actual stop is handled in renderer; this signals state only
-    return null;
   }
 
   cleanup() {
     this.recording = false;
-    this.stream?.getTracks().forEach((t) => t.stop());
   }
 }

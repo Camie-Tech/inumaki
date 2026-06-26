@@ -52,6 +52,8 @@ export function useRecorder(opts: RecorderOptions) {
   };
 
   const startRecording = useCallback(async () => {
+    // Guard against double-start (e.g. global hotkey + in-window key handler).
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -77,6 +79,15 @@ export function useRecorder(opts: RecorderOptions) {
       setState('error');
     }
   }, []);
+
+  // Listen for the main process (global hotkey) requesting a START. Declared
+  // after startRecording so its dependency reference is initialized.
+  useEffect(() => {
+    const cleanup = window.electronAPI?.onStartRecording?.(() => {
+      startRecording();
+    });
+    return cleanup;
+  }, [startRecording]);
 
   const handleStopAndProcess = useCallback(async () => {
     const mr = mediaRecorderRef.current;

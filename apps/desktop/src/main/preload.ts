@@ -9,6 +9,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeAllListeners('recording-state-change');
   },
 
+  onStartRecording: (cb: () => void) => {
+    ipcRenderer.on('start-recording', () => cb());
+    return () => ipcRenderer.removeAllListeners('start-recording');
+  },
+
   onProcessAudio: (cb: (data: any) => void) => {
     ipcRenderer.on('process-audio', (_e, data) => cb(data));
     return () => ipcRenderer.removeAllListeners('process-audio');
@@ -58,6 +63,7 @@ declare global {
   interface Window {
     electronAPI: {
       onRecordingStateChange: (cb: (data: RecordingStateChange) => void) => () => void;
+      onStartRecording: (cb: () => void) => () => void;
       onProcessAudio: (cb: (data: any) => void) => () => void;
       sendProcessResult: (state: string, message?: string) => void;
       pasteText: (text: string) => void;
