@@ -257,6 +257,9 @@ function setupIpc() {
   ipcMain.on('window-hide', () => mainWindow?.hide());
   ipcMain.on('window-close', () => mainWindow?.hide());
 
+  // App version (shown in the UI; confirms which build is running after an update)
+  ipcMain.handle('get-app-version', () => app.getVersion());
+
   // Store access
   ipcMain.handle('store-get', (_event, key: string) => store.get(key));
   ipcMain.handle('store-set', (_event, key: string, value: unknown) => {

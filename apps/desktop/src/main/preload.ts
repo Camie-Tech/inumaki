@@ -48,6 +48,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   storeGet: (key: string) => ipcRenderer.invoke('store-get', key),
   storeSet: (key: string, value: unknown) => ipcRenderer.invoke('store-set', key, value),
 
+  // ─── App ────────────────────────────────────────────────────────
+  getAppVersion: (): Promise<string> => ipcRenderer.invoke('get-app-version'),
+
   // ─── Auth ───────────────────────────────────────────────────────
   openAuth: (url: string) => ipcRenderer.send('open-auth', url),
   onDeepLinkToken: (
@@ -75,6 +78,7 @@ declare global {
       hideWindow: () => void;
       storeGet: (key: string) => Promise<unknown>;
       storeSet: (key: string, value: unknown) => Promise<void>;
+      getAppVersion: () => Promise<string>;
       openAuth: (url: string) => void;
       onDeepLinkToken: (
         cb: (payload: { token?: string | null; code?: string | null; base?: string | null }) => void

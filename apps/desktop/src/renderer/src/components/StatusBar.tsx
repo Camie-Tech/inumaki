@@ -1,4 +1,5 @@
 // apps/desktop/src/renderer/src/components/StatusBar.tsx
+import { useEffect, useState } from 'react';
 import type { RecordingState, OutputMode } from '@inumaki/shared';
 import { OUTPUT_MODE_LABELS } from '@inumaki/shared';
 
@@ -17,6 +18,15 @@ const STATE_COLORS: Record<RecordingState, string> = {
 };
 
 export function StatusBar({ state, mode, autoPaste }: StatusBarProps) {
+  const [version, setVersion] = useState('');
+
+  useEffect(() => {
+    window.electronAPI
+      ?.getAppVersion?.()
+      .then((v) => setVersion(v))
+      .catch(() => {});
+  }, []);
+
   return (
     <div
       style={{
@@ -72,6 +82,13 @@ export function StatusBar({ state, mode, autoPaste }: StatusBarProps) {
         </svg>
         {autoPaste ? 'auto-paste' : 'copy only'}
       </span>
+
+      {version && (
+        <>
+          <span style={{ color: 'var(--border)' }}>·</span>
+          <span title="App version">v{version}</span>
+        </>
+      )}
     </div>
   );
 }
