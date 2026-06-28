@@ -44,8 +44,9 @@ jobs:
         with:
           name: inumaki-windows-${{ github.ref_name }}
           path: |
-            apps/desktop/dist/*.exe
-            apps/desktop/dist/*.msi
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.blockmap
+            apps/desktop/release/latest.yml
           retention-days: 30
 
   create-release:

@@ -19,7 +19,6 @@ export function MainPanel({ onShowPreview }: MainPanelProps) {
   const [autoPaste, setAutoPaste] = useState(true);
   const [previewBeforePaste, setPreviewBeforePaste] = useState(false);
   const [apiBase, setApiBase] = useState('');
-  const [authToken, setAuthToken] = useState('');
   const [lastResult, setLastResult] = useState<ProcessAudioResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -31,14 +30,12 @@ export function MainPanel({ onShowPreview }: MainPanelProps) {
       get('autoPaste'),
       get('previewBeforePaste'),
       get('apiBase'),
-      get('authToken'),
-    ]).then(([m, tone, ap, pp, base, token]) => {
+    ]).then(([m, tone, ap, pp, base]) => {
       if (m) setMode(m as OutputMode);
       if (tone) setTonePreference(tone as string);
       if (ap !== undefined) setAutoPaste(ap as boolean);
       if (pp !== undefined) setPreviewBeforePaste(pp as boolean);
       setApiBase((base as string) || 'http://localhost:3000');
-      setAuthToken((token as string) || '');
     });
   }, []);
 
@@ -71,7 +68,6 @@ export function MainPanel({ onShowPreview }: MainPanelProps) {
 
   const { state, elapsed, startRecording, stopRecording } = useRecorder({
     apiBase,
-    authToken,
     mode,
     tonePreference,
     onResult: handleResult,

@@ -2,12 +2,12 @@
 import { useState, useEffect } from 'react';
 import { MainPanel } from './pages/MainPanel';
 import { SettingsPanel } from './pages/SettingsPanel';
-import { AuthPanel } from './pages/AuthPanel';
+import { OnboardingPanel } from './pages/OnboardingPanel';
 import { PreviewModal } from './components/PreviewModal';
 import { TitleBar } from './components/TitleBar';
 import { useStore } from './hooks/useStore';
 
-type Page = 'main' | 'settings' | 'auth';
+type Page = 'main' | 'settings';
 
 export default function App() {
   const [page, setPage] = useState<Page>('main');
@@ -18,14 +18,13 @@ export default function App() {
   } | null>(null);
 
   const { get } = useStore();
-  const [authed, setAuthed] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
 
   useEffect(() => {
-    // Check if we have a session token stored
-    get('authToken').then((token) => {
-      setAuthed(!!token);
-      setCheckingAuth(false);
+    get('onboardingComplete').then((complete) => {
+      setOnboardingComplete(Boolean(complete));
+      setCheckingOnboarding(false);
     });
   }, []);
 
@@ -38,7 +37,7 @@ export default function App() {
     return cleanup;
   }, []);
 
-  if (checkingAuth) {
+  if (checkingOnboarding) {
     return (
       <div
         style={{
@@ -64,13 +63,13 @@ export default function App() {
     );
   }
 
-  if (!authed) {
+  if (!onboardingComplete) {
     return (
       <div
         style={{ height: '100vh', background: 'var(--bg)', borderRadius: 12, overflow: 'hidden' }}
       >
         <TitleBar onSettings={() => {}} hideSettings />
-        <AuthPanel onAuthed={() => setAuthed(true)} />
+        <OnboardingPanel onContinue={() => setOnboardingComplete(true)} />
       </div>
     );
   }

@@ -1,9 +1,8 @@
 import { ImageResponse } from 'next/og';
 
-// Generated 1200x630 (1.91:1) social card — replaces the off-spec 1536x1024
-// wordmark PNG. Dark #0b0f14 background matches the site theme-color, and the
-// tagline + "Free · Open source" strip render the value prop in every preview.
-export const alt = 'Inumaki — free local voice-to-text dictation app for Windows';
+// Generated 1200x630 (1.91:1) social card. Dark #0b0f14 background matches the
+// site theme-color, and the tagline renders the value prop in every preview.
+export const alt = 'Inumaki - free local voice-to-text dictation app for Windows';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 

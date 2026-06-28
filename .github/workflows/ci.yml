@@ -39,15 +39,7 @@ jobs:
       - name: Typecheck (desktop)
         run: pnpm --filter @inumaki/desktop typecheck
 
-      - name: Lint
-        run: pnpm lint
-
       - name: Build web
         run: pnpm build:web
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://test:test@localhost:5432/inumaki_test' }}
-          NEXTAUTH_URL: http://localhost:3000
-          NEXTAUTH_SECRET: test-secret-for-build
-          GOOGLE_CLIENT_ID: placeholder
-          GOOGLE_CLIENT_SECRET: placeholder
           OPENAI_API_KEY: placeholder

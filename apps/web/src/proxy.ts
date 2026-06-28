@@ -1,36 +1,14 @@
-// apps/web/src/middleware.ts
-import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
-export default auth((req) => {
+export default function proxy(req: { nextUrl: URL; url: string }) {
   const { pathname } = req.nextUrl;
 
-  // Public paths
-  const publicPaths = [
-    '/',
-    '/auth/signin',
-    '/auth/verify',
-    '/auth/error',
-    '/api/auth',
-    '/api/download',
-  ];
-  if (publicPaths.some((p) => pathname.startsWith(p))) {
-    return NextResponse.next();
-  }
-
-  // Require auth for everything else
-  if (!req.auth) {
-    const signInUrl = new URL('/auth/signin', req.url);
-    return NextResponse.redirect(signInUrl);
-  }
-
-  // Admin-only routes
-  if (pathname.startsWith('/admin') && req.auth.user?.role !== 'ADMIN') {
+  if (pathname.startsWith('/admin')) {
     return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)'],

@@ -4,7 +4,6 @@ import type { OutputMode, RecordingState, ProcessAudioResponse } from '@inumaki/
 
 interface RecorderOptions {
   apiBase: string;
-  authToken: string;
   mode: OutputMode;
   tonePreference: string;
   onResult: (res: ProcessAudioResponse) => void;
@@ -125,10 +124,7 @@ export function useRecorder(opts: RecorderOptions) {
     try {
       const res = await fetch(`${opts.apiBase}/api/process`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${opts.authToken}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           audioBase64,
           mimeType,

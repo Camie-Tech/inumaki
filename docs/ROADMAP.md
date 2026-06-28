@@ -115,8 +115,8 @@ These are not roadmap items; they are the product. Nothing in §4 ships until th
 
 1. **GitHub Sponsors / donations — start now** (Handy model). Zero friction; signals seriousness.
 2. **One-time "Pro" license (~$30–40, VoiceInk model).** OSS code stays free to build; a paid signed binary + license unlocks *convenience* Pro features (advanced per-app profiles, auto-learning dictionary, command-mode bundle). Pro features must be conveniences, never gates on the core loop.
-3. **BYOK cloud option as a bridge** (Whispering/OpenWhispr model). Let power users plug in their own Groq/OpenAI key — zero infra cost to us, adds a speed option without us hosting anything.
-4. **Open-core / hosted convenience (later, only if demand proves out).** Optional paid hosted sync for dictionary/snippets/profiles across machines — strictly opt-in, clearly separated, never default.
+3. **BYOK API option as a bridge** (Whispering/OpenWhispr model). Let power users plug in their own Groq/OpenAI key for speed without adding hosted accounts, sessions, or team administration.
+4. **Local-first sync only if needed.** If profiles/dictionaries need portability later, prefer file import/export or user-owned sync targets. Do not add a hosted/internal account mode.
 
 **Do NOT:** require login, add telemetry-by-default, throttle a free tier, or drift up-market into teams/analytics early. Wispr is vacating the simple-private-free single-user lane; that's our entire market.
 

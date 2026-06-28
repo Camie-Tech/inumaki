@@ -1,12 +1,14 @@
 # Inumaki — Definitive SEO Improvement Plan
 
-**Product:** Inumaki (`inumaki-ai`) by Camie Tech — free, open-source, Windows-first, 100% on-device voice-to-text via whisper.cpp (MIT).
+**Product:** Inumaki (`inumaki-ai`) by Camie Tech — free, open-source, Windows-first, local voice-to-text via whisper.cpp (MIT).
 **Site:** Next.js 16 App Router single landing page (`apps/web/src/app/page.tsx`), live at `https://inumaki-five.vercel.app`, intended home `https://inumaki.camie.tech` (DNS not resolving as of 2026-06-25).
-**Date:** 2026-06-25
+**Date:** 2026-06-25; corrected for local-first release on 2026-06-28
+
+> **2026-06-28 PRODUCT/COPY CORRECTION — read before using this plan.** The landing page must market the local-first product: **free open-source Windows voice-to-text**, local **whisper.cpp** transcription, no account, no remote transcription, global hotkey, paste-ready output, and auditable privacy. New crawlable pages shipped: `/wispr-flow-alternative`, `/privacy`, and `/help`.
 
 > **TIME-SENSITIVE CORRECTION — read first.** The common assumption that "FAQ schema wins featured snippets" is **no longer true.** Google **fully deprecated FAQ rich results on May 7, 2026.** FAQPage markup is still *valid* (no error, no penalty) and is still parsed for AI Overviews / LLM ingestion, but it will **not** render the expandable accordion in Search for any site. **Ship FAQ content for users + AI answer-engines, but do NOT budget effort expecting a Google FAQ rich snippet.** The schema types that still earn rich results — and that we prioritize — are **`SoftwareApplication`**, **`Organization`**, and **`WebSite`**.
 
-Legend: **[NOW]** = implemented in this pass (metadata, sitemap, robots, manifest, OG image, JSON-LD, FAQ section). **[LATER]** = follow-up work (new pages, off-page, ongoing).
+Legend: **[NOW]** = implemented (metadata, sitemap, robots, manifest, OG image, JSON-LD, FAQ section, `/wispr-flow-alternative`, `/privacy`, `/help`). **[LATER]** = follow-up work (off-page, ongoing, and any future local/offline product pages once that build is the public download).
 
 ---
 
@@ -21,8 +23,9 @@ The site also had a foundational identity problem: `metadataBase` pointed at `ht
 1. **Consolidate domain identity (env-driven canonical).** **[NOW]** Canonical host configurable via `NEXT_PUBLIC_SITE_URL`, defaulting to the live Vercel URL so canonical/OG/sitemap all resolve to a crawlable host today. Add `alternates.canonical: '/'`. This single fix unblocks indexing.
 2. **Ship the technical SEO substrate.** **[NOW]** `sitemap.ts`, `robots.ts` (disallow `/api`, `/admin`, `/dashboard`, `/auth`), `manifest.ts`, generated `opengraph-image.tsx`/`twitter-image.tsx` (1200×630), and a Twitter card. Pure upside, no ranking risk.
 3. **Add `SoftwareApplication` + `Organization` + `WebSite` JSON-LD**, populated dynamically from the GitHub release already fetched in `page.tsx`. **[NOW]** Biggest rich-result opportunity for a downloadable app; disambiguates "Inumaki" from the Jujutsu Kaisen character.
-4. **Attack the "Wispr Flow alternative (free / open-source)" cluster** with a dedicated `/wispr-flow-alternative` comparison page. **[LATER]** Highest-ROI keyword set; the SERP is weak listicles + WritHer, beatable. Paired with the FAQ section shipped now and an on-page comparison teaser.
-5. **Run the OSS distribution playbook.** **[LATER]** GitHub repo optimization → alternativeto.net + awesome-lists → coordinated Product Hunt + Show HN launch. For a zero-DA OSS tool, off-page links + community launches drive ~80% of early authority.
+4. **Attack the "Wispr Flow alternative (free / open-source)" cluster** with a dedicated `/wispr-flow-alternative` comparison page. **[NOW]** The shipped page compares against Wispr on price, local processing, source availability, platforms, languages, and maturity.
+5. **Add trust/support pages for long-tail intent.** **[NOW]** `/privacy` explains the local audio path; `/help` targets install, SmartScreen, hotkey, and troubleshooting searches.
+6. **Run the OSS distribution playbook.** **[LATER]** GitHub repo optimization → alternativeto.net + awesome-lists → coordinated Product Hunt + Show HN launch. For a zero-DA OSS tool, off-page links + community launches drive ~80% of early authority.
 
 ---
 

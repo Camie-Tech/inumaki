@@ -1,11 +1,11 @@
 import type { MetadataRoute } from 'next';
+import { PRODUCT_DESCRIPTION } from '@/lib/marketing';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Inumaki — Local voice-to-text for Windows',
+    name: 'Inumaki - Voice-to-text for Windows',
     short_name: 'Inumaki',
-    description:
-      'Free, open-source local voice-to-text for Windows. 100% on-device transcription via whisper.cpp.',
+    description: PRODUCT_DESCRIPTION,
     start_url: '/',
     display: 'standalone',
     background_color: '#0b0f14',

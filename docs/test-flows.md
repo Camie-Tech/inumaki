@@ -1,234 +1,66 @@
-# Manual Test Flows
+# Test Flows
 
-Run these manually before any release or milestone merge into `main`.
+These flows reflect the OSS-only app. Do not add browser sign-in, invite, admin, or database checks.
 
----
+## Flow 1: Desktop First Run
 
-## Flow 1 — Sign in (Google)
+1. Start the desktop app with a clean local store.
+2. Confirm the first-run onboarding appears.
+3. Set the API server URL.
+4. Continue to the main panel.
 
-1. Open app at `http://localhost:3000`
-2. Click **Continue with Google Workspace**
-3. Authenticate with an approved account
-4. Confirm landing on `/dashboard`
+Pass: no browser opens and no auth token is requested.
 
-**Pass:** User is signed in, dashboard shows stats.  
-**Fail:** Redirect loop, blank page, or error screen.
+## Flow 2: Hotkey Recording
 
----
+1. Focus a text editor.
+2. Press `Ctrl+Shift+Space`.
+3. Speak a short sentence.
+4. Release the hotkey.
 
-## Flow 2 — Sign in (Magic Link)
+Pass: recording starts and stops through the global hotkey, audio is sent to `/api/process`, and the result is copied or pasted.
 
-1. Open `/auth/signin`
-2. Enter approved email → **Continue with Email**
-3. Check inbox for link
-4. Click link → confirm `/dashboard` loads
+## Flow 3: Manual Record Button
 
-**Pass:** Session established.  
-**Fail:** Email not received, link expired immediately, unauthorized error.
+1. Open the desktop main panel.
+2. Click the record button.
+3. Speak a short sentence.
+4. Click stop.
 
----
+Pass: the same processing path runs without requiring a session.
 
-## Flow 3 — Blocked email
+## Flow 4: Preview Before Paste
 
-1. Try signing in with an email NOT in `ALLOWED_EMAIL_DOMAINS` or `ALLOWED_EMAILS` and NOT invited
-2. Confirm redirect to `/auth/error?error=AccessDenied`
+1. Enable preview-before-paste in Settings.
+2. Record a short sentence.
 
-**Pass:** Clear "Access denied" message.  
-**Fail:** User gets in, or unhandled error.
+Pass: the preview modal appears with transcript and cleaned output.
 
----
+## Flow 5: Settings Persistence
 
-## Flow 4 — Desktop auth
+1. Change default mode, tone, hotkey, auto-paste, preview-before-paste, and API server URL.
+2. Save settings.
+3. Restart the desktop app.
 
-1. Open Electron app → Auth panel
-2. Enter API server URL + work email
-3. Click **Sign in with Browser** → browser opens
-4. Sign in via browser → copy session token from dashboard
-5. Paste token → **Connect**
+Pass: settings reload from local storage.
 
-**Pass:** App transitions to Main Panel.  
-**Fail:** Token rejected, blank state, crash.
+## Flow 6: Web Dashboard
 
----
+1. Open `/dashboard`.
 
-## Flow 5 — Basic dictation (Clean mode)
+Pass: the public getting-started dashboard renders. It does not redirect to `/auth/signin`.
 
-1. Open any text field (Notepad, VS Code, browser input)
-2. Press `Ctrl+Shift+Space`
-3. Speak: _"uh so basically I want to um add a new button to the settings page"_
-4. Press `Ctrl+Shift+Space` again to stop
+## Flow 7: Stale Auth Links
 
-**Pass:**
+1. Open `/auth/signin`.
+2. Open `/auth/verify`.
+3. Open `/auth/desktop`.
 
-- Recording animation shows
-- Processing state shows
-- Output: _"I want to add a new button to the settings page."_
-- Text pastes into focused app
+Pass: sign-in and verify explain that no account is required; desktop auth redirects to `/dashboard`.
 
-**Fail:** No waveform, no output, paste doesn't land, filler words not removed.
+## Flow 8: Processing Endpoint
 
----
+1. Send a valid `POST /api/process` request with audio data.
+2. Omit all auth headers.
 
-## Flow 6 — Raw mode
-
-1. Set mode to **Raw Transcript**
-2. Speak: _"um yeah so we should probably like fix the bug in uh the API handler"_
-3. Stop
-
-**Pass:** Transcript is near-verbatim, minimal rewriting.  
-**Fail:** Output is over-cleaned or equivalent to Clean mode.
-
----
-
-## Flow 7 — Polished Message mode
-
-1. Set mode to **Polished Message**
-2. Speak informally: _"hey just wanted to say the deploy went fine and like everything is working now"_
-3. Stop
-
-**Pass:** Output is a professional, concise message. E.g. _"The deployment completed successfully. Everything is working as expected."_  
-**Fail:** Casual language preserved, padding added, meaning changed.
-
----
-
-## Flow 8 — Coding Prompt mode
-
-1. Set mode to **Coding Prompt**
-2. Speak: _"I need a function that takes a list of users and returns only the ones that are active and have logged in in the last 30 days sorted by most recent login"_
-3. Stop
-
-**Pass:** Output is structured with clear task description and bullet-point requirements.  
-**Fail:** Output is a cleaned sentence, not a structured prompt.
-
----
-
-## Flow 9 — Preview before paste
-
-1. Settings → enable **Preview before paste**
-2. Speak anything
-3. Stop
-
-**Pass:**
-
-- Preview modal opens with transcript + rewritten output
-- Text is editable
-- **Paste** button works, pastes edited text
-- **Cancel** dismisses without pasting
-
-**Fail:** Modal doesn't open, edits not preserved, paste inserts unedited text.
-
----
-
-## Flow 10 — Auto-paste off
-
-1. Settings → disable **Auto-paste**
-2. Speak something
-3. Stop
-
-**Pass:** Output shown, notification says "copied to clipboard", nothing auto-pasted.  
-**Fail:** Text pastes anyway.
-
----
-
-## Flow 11 — Microphone change
-
-1. Settings → switch microphone to a different input device
-2. Save → speak
-
-**Pass:** Recording uses selected device, audio captured correctly.  
-**Fail:** Silent audio, wrong device used, crash.
-
----
-
-## Flow 12 — Hotkey change
-
-1. Settings → change hotkey to `Ctrl+Alt+Space`
-2. Save
-3. Use new hotkey to trigger recording
-
-**Pass:** Old hotkey no longer works, new hotkey triggers correctly.  
-**Fail:** Both hotkeys work, neither works, app freezes.
-
----
-
-## Flow 13 — Error: microphone denied
-
-1. Deny microphone permission in OS/browser settings
-2. Try to record
-
-**Pass:** Clear error message in UI ("Microphone access denied"), no crash, retry path available.  
-**Fail:** Silent failure, crash, infinite processing state.
-
----
-
-## Flow 14 — Error: network down
-
-1. Stop the backend server (`Ctrl+C` in terminal)
-2. Try to dictate
-
-**Pass:** Error state shown after timeout, message indicates connection issue, retry button works when server is back.  
-**Fail:** Indefinite processing spinner, crash.
-
----
-
-## Flow 15 — Tray behavior
-
-1. Close the main window (X button)
-2. Confirm app still runs in system tray
-3. Click tray icon → window reappears
-4. Right-click tray → **Quit**
-
-**Pass:** App persists in tray, quit fully exits.  
-**Fail:** App exits on window close, tray icon missing, quit doesn't work.
-
----
-
-## Flow 16 — Admin: invite user
-
-1. Sign in as admin → `/admin`
-2. Enter a new email → **Invite**
-3. Sign out → sign in as that email
-
-**Pass:** Invited user can sign in.  
-**Fail:** Invite not created, user still blocked.
-
----
-
-## Flow 17 — Admin: deactivate user
-
-1. Sign in as admin → `/admin`
-2. Find a user → **Deactivate**
-3. Sign out → sign in as that user
-
-**Pass:** Deactivated user sees access denied.  
-**Fail:** User still signs in, or admin page errors.
-
----
-
-## Flow 18 — Usage logging
-
-1. Complete any dictation successfully
-2. Check `/dashboard` → recent activity table
-
-**Pass:** Log entry appears with correct mode, duration, success status.  
-**Fail:** No log, wrong mode recorded, duration is 0.
-
----
-
-## Flow 19 — Settings persistence
-
-1. Change mode, tone, hotkey
-2. Save → close and reopen app
-
-**Pass:** All settings restored to saved values.  
-**Fail:** Settings reset to defaults on restart.
-
----
-
-## Flow 20 — Second instance
-
-1. Launch Inumaki AI
-2. Try launching a second instance
-
-**Pass:** Second launch focuses the existing window, no duplicate process.  
-**Fail:** Two instances run simultaneously.
+Pass: the endpoint processes the request or returns a processing error, never `401 Unauthorized`.

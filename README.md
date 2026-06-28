@@ -1,220 +1,83 @@
-# Inumaki AI
+# Inumaki
 
-> **Open-source, Windows-first internal voice productivity tool.**  
-> Press a hotkey → speak → get polished text pasted into any app.
+Open-source, Windows-first voice-to-text. Press a hotkey, speak in any app, and get cleaned text pasted back where you were working.
 
-![Status](https://img.shields.io/badge/status-MVP-violet)
-![Platform](https://img.shields.io/badge/platform-Windows-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+Inumaki OSS does not require accounts, invite lists, admin panels, browser sign-in, or database-backed sessions.
 
----
+## Apps
 
-## What it does
+| Workspace | Purpose |
+| --- | --- |
+| `apps/desktop` | Electron + Vite Windows tray app |
+| `apps/web` | Next.js marketing/download site and optional `/api/process` endpoint |
+| `packages/shared` | Shared TypeScript request/response types |
 
-Inumaki AI is a push-to-talk voice input layer with an AI cleanup layer, built for internal developer use. You hold a global hotkey, speak naturally, and get cleaned-up text pasted directly into whatever app is focused — VS Code, Slack, Notion, Terminal, anything.
+## Requirements
 
-**Output modes:**
+- Windows 10 or 11 for the desktop app.
+- Node.js 20+ and pnpm via Corepack for development.
+- `OPENAI_API_KEY` only if you run the current web `/api/process` backend.
 
-- **Raw Transcript** — minimal cleanup, verbatim
-- **Clean Text** — filler words removed, punctuation fixed
-- **Polished Message** — professional communication output
-- **Coding Prompt** — structured prompt ready for AI coding assistants
+No `DATABASE_URL`, OAuth client, SMTP provider, invite list, or auth secret is required.
 
-**Access:** invite-only. Only approved email domains or explicitly invited emails can sign in.
-
----
-
-## Tech stack
-
-| Layer             | Stack                                        |
-| ----------------- | -------------------------------------------- |
-| Desktop app       | Electron + React + TypeScript                |
-| Backend / Auth    | Next.js 14 (App Router)                      |
-| Auth providers    | Google Workspace OAuth + Magic Link (Resend) |
-| Transcription     | OpenAI Whisper (`whisper-1`)                 |
-| Rewrite / Cleanup | OpenAI GPT-4o / GPT-4o-mini                  |
-| Database          | PostgreSQL + Prisma ORM                      |
-| Monorepo          | pnpm workspaces                              |
-
----
-
-## Project structure
-
-```
-inumaki-ai/
-  apps/
-    desktop/          # Electron app (Windows)
-      src/
-        main/         # Main process (hotkey, tray, IPC)
-        renderer/     # React UI (panel, settings, preview)
-    web/              # Next.js backend + web UI
-      src/
-        app/
-          api/        # /api/process, /api/preferences, /api/admin
-          auth/       # Sign-in, verify, error pages
-          dashboard/  # Post-auth landing
-          admin/      # Admin panel
-        lib/          # auth.ts, prisma.ts, openai.ts
-      prisma/         # Schema + migrations
-  packages/
-    shared/           # Shared TypeScript types
-  .github/
-    workflows/        # CI + Release
-  docs/               # Additional documentation
-```
-
----
-
-## Getting started
-
-### Prerequisites
-
-- Node.js ≥ 20
-- pnpm ≥ 9
-- PostgreSQL database
-- OpenAI API key
-- Google Cloud OAuth credentials (or Resend API key for magic link only)
-
-### 1. Clone and install
+## Development
 
 ```bash
-git clone https://github.com/your-org/inumaki-ai.git
-cd inumaki-ai
-pnpm install
+corepack enable
+corepack pnpm install
+corepack pnpm --filter @inumaki/web dev
+corepack pnpm --filter @inumaki/desktop dev
 ```
 
-### 2. Configure environment
+Useful checks:
 
 ```bash
-cp .env.example apps/web/.env.local
-# Edit apps/web/.env.local with your credentials
+corepack pnpm --filter @inumaki/web typecheck
+corepack pnpm --filter @inumaki/desktop typecheck
+corepack pnpm -r typecheck
 ```
 
-Required variables:
+## Desktop Flow
 
-```env
-DATABASE_URL=postgresql://...
-NEXTAUTH_SECRET=<generate with: openssl rand -base64 32>
-NEXTAUTH_URL=http://localhost:3000
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-RESEND_API_KEY=...           # for magic link
-OPENAI_API_KEY=sk-...
-ALLOWED_EMAIL_DOMAINS=yourcompany.com
+1. Launch the desktop app.
+2. Complete the short first-run onboarding.
+3. Press `Ctrl+Shift+Space` to record.
+4. Release the hotkey to process the audio.
+5. Inumaki copies or pastes the cleaned text into the focused app.
+
+The desktop settings panel controls mode, tone, hotkey, auto-paste, preview-before-paste, microphone, and API server URL.
+
+## Web API
+
+`POST /api/process` accepts audio from the desktop app without authentication.
+
+Request shape is defined in `packages/shared`:
+
+```ts
+{
+  audioBase64: string;
+  mimeType?: string;
+  durationSeconds: number;
+  mode?: 'raw' | 'clean' | 'polished' | 'coding_prompt';
+  tonePreference?: string;
+}
 ```
 
-### 3. Set up the database
+Response:
+
+```ts
+{
+  transcript: string;
+  output: string;
+  mode: string;
+}
+```
+
+## Build
 
 ```bash
-cd apps/web
-pnpm db:push        # push schema to DB
-# or
-pnpm db:migrate     # create migration files
+corepack pnpm --filter @inumaki/web build
+corepack pnpm --filter @inumaki/desktop build:win
 ```
 
-### 4. Promote yourself to admin
-
-After first sign-in:
-
-```sql
-UPDATE "User" SET role = 'ADMIN' WHERE email = 'you@yourcompany.com';
-```
-
-### 5. Run the web backend
-
-```bash
-pnpm dev:web
-# → http://localhost:3000
-```
-
-### 6. Run the desktop app
-
-```bash
-pnpm dev:desktop
-# Electron window opens
-```
-
----
-
-## Google OAuth setup
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create a project → APIs & Services → Credentials
-3. Create OAuth 2.0 Client ID (Web application)
-4. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
-5. For production: add your real domain
-6. To restrict to a specific Google Workspace, set `ALLOWED_EMAIL_DOMAINS=yourcompany.com`
-
----
-
-## Inviting users
-
-**Via admin panel** (`/admin`):
-
-- Sign in as admin
-- Enter email → Invite
-- User gets added to invite list and can sign in
-
-**Via environment variable** (no admin panel needed):
-
-```env
-ALLOWED_EMAILS=alice@external.com,bob@contractor.dev
-```
-
----
-
-## Branching model
-
-```
-main   ← stable, tagged releases
-dev    ← active integration
-feature/...  ← short-lived, branch from dev
-fix/...      ← bug fixes, branch from dev
-```
-
-PRs should target `dev`. Milestones merge `dev → main` and get tagged.
-
----
-
-## CI / CD
-
-- **CI** (`ci.yml`): runs on all PRs — typecheck, lint, build
-- **Release** (`release.yml`): triggered on `v*.*.*` tags — builds Windows `.exe`, creates GitHub release
-
-To cut a release:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
----
-
-## Desktop app: connecting to backend
-
-1. Run or deploy the web backend
-2. Open the Electron app → Auth screen
-3. Enter the API server URL + your work email
-4. Browser opens for sign-in (Google or magic link)
-5. Copy session token from dashboard → paste into desktop app
-
----
-
-## Definition of done (MVP)
-
-- [x] Internal users can authenticate (Google + magic link)
-- [x] Windows app runs in background/tray
-- [x] Global hotkey push-to-talk works
-- [x] Audio transcribed via OpenAI Whisper
-- [x] 4 rewrite modes (raw, clean, polished, coding prompt)
-- [x] Output pastes into focused app
-- [x] Preview modal with edit-before-paste
-- [x] Settings persisted locally
-- [x] Admin panel: invite + deactivate users
-- [x] GitHub repo, branch model, CI/CD in place
-
----
-
-## License
-
-MIT — see [LICENSE](./LICENSE)
+Windows installers are produced by `electron-builder` under `apps/desktop/release/`.

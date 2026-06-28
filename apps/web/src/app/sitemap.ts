@@ -1,16 +1,13 @@
 import type { MetadataRoute } from 'next';
-import { SITE_URL } from '@/lib/site';
+import { absoluteUrl, INDEXABLE_ROUTES } from '@/lib/marketing';
 
-// Single-page marketing site: only the homepage is indexable. App/auth routes
-// are intentionally excluded (also disallowed in robots.ts). Add content pages
-// (e.g. /wispr-flow-alternative) here as they ship.
+// Only marketing/help content is indexable. App/auth routes stay excluded and
+// disallowed in robots.ts.
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url: `${SITE_URL}/`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-  ];
+  return INDEXABLE_ROUTES.map((route) => ({
+    url: absoluteUrl(route.path),
+    lastModified: new Date(route.lastModified),
+    changeFrequency: route.changeFrequency,
+    priority: route.priority,
+  }));
 }

@@ -6,7 +6,9 @@ import path from 'path';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, path.resolve(__dirname, '../../'), '');
-  const apiServer = env.AUTH_URL || env.NEXTAUTH_URL || 'http://localhost:3000';
+  const defaultApiServer =
+    mode === 'production' ? 'https://inumaki-five.vercel.app' : 'http://localhost:3000';
+  const apiServer = env.INUMAKI_API_URL || defaultApiServer;
 
   return {
     define: {

@@ -9,7 +9,7 @@ interface StoreSchema {
   microphoneId: string;
   tonePreference: string;
   startMinimized: boolean;
-  authToken: string;
+  onboardingComplete: boolean;
   apiBase: string;
 }
 
@@ -33,7 +33,7 @@ export const store = new ElectronStore<StoreSchema>({
     microphoneId: 'default',
     tonePreference: 'neutral',
     startMinimized: false,
-    authToken: '',
+    onboardingComplete: false,
     apiBase: 'https://inumaki-five.vercel.app',
   },
   encryptionKey: process.env.STORE_ENCRYPTION_KEY,

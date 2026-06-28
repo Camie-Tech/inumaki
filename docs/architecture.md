@@ -1,176 +1,58 @@
 # Architecture
 
-## Overview
+Inumaki is a small monorepo with a Windows desktop app, a Next.js web app, and shared TypeScript types.
 
-Inumaki AI is a two-component system:
+## Workspaces
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                   Windows Desktop App                    │
-│                 (Electron + React + TS)                  │
-│                                                          │
-│  ┌──────────┐  ┌─────────────┐  ┌────────────────────┐  │
-│  │  Tray    │  │ Main Panel  │  │  Settings Panel    │  │
-│  │  + Icon  │  │  (dictate)  │  │  (prefs, hotkey)   │  │
-│  └──────────┘  └─────────────┘  └────────────────────┘  │
-│                                                          │
-│  ┌──────────────────────────────────────────────────┐    │
-│  │              Main Process (Node.js)              │    │
-│  │  globalShortcut · Tray · IPC · electron-store   │    │
-│  └──────────────────────────────────────────────────┘    │
-└─────────────────────────────┬───────────────────────────┘
-                              │ HTTPS (REST API)
-                              │ POST /api/process
-                              │ GET/PATCH /api/preferences
-                              │ POST /api/admin
-                              ▼
-┌─────────────────────────────────────────────────────────┐
-│                   Backend (Next.js)                      │
-│                                                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
-│  │  NextAuth v5  │  │  /api/process│  │  /api/admin  │   │
-│  │  Google +     │  │  Whisper +   │  │  Invite /    │   │
-│  │  Magic Link   │  │  GPT-4o      │  │  Deactivate  │   │
-│  └──────────────┘  └──────────────┘  └──────────────┘   │
-│                                                          │
-│  ┌──────────────────────────────────────────────────┐    │
-│  │                   Prisma ORM                     │    │
-│  └──────────────────────────┬─────────────────────┘     │
-└───────────────────────────┬─┴───────────────────────────┘
-                            │
-                ┌───────────┴───────────┐
-                │     PostgreSQL         │
-                │  users                │
-                │  user_preferences     │
-                │  usage_logs           │
-                │  invites              │
-                │  (NextAuth tables)    │
-                └───────────────────────┘
-                            │
-                ┌───────────┴──────────────┐
-                │       OpenAI API         │
-                │  whisper-1 (transcribe)  │
-                │  gpt-4o-mini (raw/clean) │
-                │  gpt-4o (polished/code)  │
-                └──────────────────────────┘
+| Workspace | Role |
+| --- | --- |
+| `apps/desktop` | Electron shell, tray window, global hotkey, microphone capture, clipboard/paste integration |
+| `apps/web` | Landing/help pages, release download redirect, optional `/api/process` audio endpoint |
+| `packages/shared` | Shared request/response types and output mode definitions |
+
+## Runtime Flow
+
+```text
+focused Windows app
+  -> global hotkey
+  -> Electron main process
+  -> renderer MediaRecorder
+  -> POST /api/process
+  -> transcription + rewrite
+  -> clipboard / paste into focused app
 ```
 
----
+There is no auth boundary in this flow. The desktop app stores local settings through `electron-store`, including onboarding completion, output preferences, hotkey, and API base URL.
 
-## Recording flow
+## Desktop
 
-```
-User holds hotkey
-       │
-       ▼
-Main process signals renderer (IPC)
-       │
-       ▼
-renderer: MediaRecorder.start()
-  └── chunks accumulated every 100ms
-       │
-User releases hotkey
-       │
-       ▼
-Main process signals renderer: stop
-       │
-       ▼
-renderer: MediaRecorder.stop()
-  └── chunks → Blob → ArrayBuffer → base64
-       │
-       ▼
-POST /api/process {audioBase64, mimeType, durationSeconds, mode}
-       │
-       ▼
-Backend: Buffer.from(base64) → OpenAI File
-       │
-       ▼
-Whisper API → transcript (string)
-       │
-       ▼
-GPT-4o (mode-specific system prompt) → rewritten output
-       │
-       ▼
-Response: {transcript, output, mode}
-       │
-       ▼
-renderer receives result
-  ├── previewBeforePaste=true  → PreviewModal (editable)
-  └── autoPaste=true          → electronAPI.pasteText(output)
-                                  └── clipboard.writeText() + simulate Ctrl+V
-```
+Key files:
 
----
+- `apps/desktop/src/main/main.ts`: Electron lifecycle, tray/window, global hotkey IPC.
+- `apps/desktop/src/main/windows-input.ts`: foreground-window capture and paste simulation.
+- `apps/desktop/src/renderer/src/App.tsx`: first-run onboarding and main/settings navigation.
+- `apps/desktop/src/renderer/src/hooks/useRecorder.ts`: microphone capture and `/api/process` request.
+- `apps/desktop/src/renderer/src/pages/OnboardingPanel.tsx`: no-account first-run setup.
 
-## Auth flow (desktop)
+## Web
 
-```
-User enters API URL + email
-       │
-       ▼
-Browser opens: /auth/signin?desktop=1
-       │
-       ▼
-Google OAuth or Magic Link
-       │
-       ▼
-NextAuth creates session in DB
-       │
-       ▼
-Dashboard shows session token
-       │
-       ▼
-User copies token → pastes into desktop app
-       │
-       ▼
-Desktop: fetch /api/auth/session validates token
-       │
-       ▼
-Token stored in electron-store (encrypted if STORE_ENCRYPTION_KEY set)
-       │
-       ▼
-All API calls: Authorization: Bearer <token>
-```
+Key files:
 
----
+- `apps/web/src/app/page.tsx`: landing page.
+- `apps/web/src/app/help/page.tsx`: install and troubleshooting guide.
+- `apps/web/src/app/api/process/route.ts`: unauthenticated processing endpoint.
+- `apps/web/src/lib/openai.ts`: OpenAI transcription and rewrite calls for the current API path.
+- `apps/web/src/lib/github-release.ts`: release metadata and download URL helpers.
 
-## Access control layers
+## Removed Auth/DB Surface
 
-```
-1. Email allowlist check (NextAuth signIn callback)
-   └── ALLOWED_EMAIL_DOMAINS or ALLOWED_EMAILS env var
+The OSS app does not include:
 
-2. Invite check (if not on allowlist)
-   └── invites table, status = PENDING
+- NextAuth routes or providers.
+- Google OAuth or magic-link email.
+- Invite allowlists.
+- Admin user management.
+- PostgreSQL session/user tables.
+- Desktop browser handoff tokens.
 
-3. isActive flag
-   └── Admin can deactivate any user
-
-4. Role check (admin routes)
-   └── /api/admin + /admin page require role = ADMIN
-
-5. Session validation on every API call
-   └── auth() call at top of every route handler
-```
-
----
-
-## Data retention policy
-
-- **Raw audio:** never stored
-- **Transcripts:** never stored
-- **Usage logs:** stored with mode, duration, success flag — no content
-- **Preferences:** stored per user, user-editable
-- **Sessions:** stored in DB by NextAuth, expire per NextAuth config
-
----
-
-## Adding a new output mode
-
-1. `packages/shared/src/index.ts` — add to `OutputMode` union
-2. `packages/shared/src/index.ts` — add to `OUTPUT_MODE_LABELS`
-3. `apps/web/src/lib/openai.ts` — add system prompt to `SYSTEM_PROMPTS`
-4. `apps/web/prisma/schema.prisma` — add to `OutputMode` enum
-5. `apps/web` — run `pnpm db:push`
-6. `apps/desktop/src/renderer/src/components/ModeSelector.tsx` — add icon + label
-7. `docs/test-flows.md` — add test flow
+`/auth/*` routes that remain are informational no-account pages or redirects so stale links fail gracefully.

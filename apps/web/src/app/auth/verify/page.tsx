@@ -1,11 +1,10 @@
-// apps/web/src/app/auth/verify/page.tsx
 export default function VerifyPage() {
   return (
-    <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
+    <main className="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-4">
       <div className="w-full max-w-sm text-center">
-        <div className="w-12 h-12 rounded-full bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto mb-4">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-violet-500/20 bg-violet-500/10">
           <svg
-            className="w-6 h-6 text-violet-400"
+            className="h-6 w-6 text-violet-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -14,22 +13,21 @@ export default function VerifyPage() {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
-              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              d="M12 6v12m6-6H6"
             />
           </svg>
         </div>
-        <h1 className="text-white text-lg font-semibold mb-2">Check your inbox</h1>
-        <p className="text-zinc-400 text-sm leading-relaxed">
-          We sent you a sign-in link. Click it to access Inumaki AI.
+        <h1 className="mb-2 text-lg font-semibold text-white">No email verification needed</h1>
+        <p className="text-sm leading-relaxed text-zinc-400">
+          Inumaki OSS does not use magic-link authentication. Open the desktop app and complete
+          onboarding instead.
         </p>
-        <p className="text-zinc-600 text-xs mt-4 font-mono">
-          Didn't get it? Check spam or try again.
-        </p>
+        <p className="mt-4 font-mono text-xs text-zinc-600">No inbox step, no account required.</p>
         <a
-          href="/auth/signin"
-          className="inline-block mt-6 text-violet-400 text-sm hover:text-violet-300 transition-colors"
+          href="/dashboard"
+          className="mt-6 inline-block text-sm text-violet-400 transition-colors hover:text-violet-300"
         >
-          ← Back to sign in
+          Back to dashboard
         </a>
       </div>
     </main>

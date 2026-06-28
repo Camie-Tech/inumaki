@@ -8,42 +8,46 @@ import {
   INUMAKI_REPO_URL,
   selectWindowsDownloadAsset,
 } from '@/lib/github-release';
+import {
+  HOTKEY,
+  PROCESSING_DISCLOSURE,
+  PRODUCT_DESCRIPTION,
+} from '@/lib/marketing';
 import { SITE_URL } from '@/lib/site';
 
-const APP_DESCRIPTION =
-  'Free, open-source voice-to-text for Windows. Press a global hotkey, speak in any app, and paste clean text — transcribed 100% on-device with whisper.cpp. No account, no cloud.';
+const APP_DESCRIPTION = PRODUCT_DESCRIPTION;
 
 // Source of truth for both the rendered FAQ section and the FAQPage JSON-LD.
 const FAQ_ITEMS = [
   {
     question: 'Is Inumaki really free?',
     answer:
-      "Yes — Inumaki is 100% free and open source under the MIT license. There's no subscription, no word cap, no trial, and no paid tier. Download it, run it, and dictate as much as you want, forever.",
+      "Yes. Inumaki is 100% free and open source under the MIT license. There's no subscription, no word cap, no trial, and no paid tier. Download it, run it, and dictate as much as you want.",
   },
   {
-    question: 'Does my voice or audio ever get uploaded?',
+    question: 'Does my voice or audio leave my computer?',
     answer:
-      'No. Transcription runs entirely on your own computer using whisper.cpp, with the model bundled inside the app. Inumaki makes no network calls to transcribe your speech — your audio is processed on-device and never leaves your machine. Because it is open source, you can read the code and verify this yourself.',
+      'No. Transcription runs on your own Windows PC with whisper.cpp. Inumaki does not upload your microphone audio for transcription, and the source code is open so you can verify the path yourself.',
   },
   {
     question: 'Does Inumaki work offline, without internet?',
     answer:
-      'Yes. Everything happens locally on your CPU, so Inumaki works fully offline — on a plane, on bad Wi-Fi, or in air-gapped and secure environments where cloud dictation tools are blocked. The only time it touches the internet is when you check for a new version.',
+      'Yes. Inumaki is built for local transcription, so the dictation loop works without an internet connection once the app is installed.',
   },
   {
     question: "How do I use it / what's the hotkey?",
     answer:
-      'Press Ctrl + Shift + Space anywhere in Windows to start listening, speak naturally, and your clean transcript is ready to paste at your cursor in any app — editors, chat, browsers, terminals.',
+      `Press ${HOTKEY} anywhere in Windows to start listening, speak naturally, and your cleaned transcript is ready to paste at your cursor in apps like editors, chat, browsers, and terminals.`,
   },
   {
     question: 'How accurate is the transcription?',
     answer:
-      'Inumaki uses the whisper.cpp ggml-base.en model, which produces punctuated, well-formatted English text and handles natural speech well in a reasonably quiet room. It runs after you finish speaking (in seconds), rather than streaming word-by-word.',
+      'Inumaki uses whisper.cpp locally for English transcription. It produces punctuated text and handles natural speech well in a reasonably quiet room. It processes after you finish speaking, rather than streaming word by word.',
   },
   {
     question: 'Does it support languages other than English?',
     answer:
-      'Not yet — Inumaki ships with the English whisper.cpp model (ggml-base.en) today. More languages are on the roadmap, and because it is open source, you are free to drop in a different whisper.cpp model now. If you need 100+ languages right away, a cloud tool like Wispr Flow may suit you better; Inumaki focuses on excellent, private, free English dictation.',
+      'Not yet. Inumaki is English-first today. More languages are on the roadmap, and because it is open source, model experimentation is possible.',
   },
   {
     question: 'Windows shows a SmartScreen warning when I run it — is that safe?',
@@ -53,7 +57,7 @@ const FAQ_ITEMS = [
   {
     question: 'What are the system requirements?',
     answer:
-      "Windows 10 or 11, 64-bit (x64). Any modern CPU works — no GPU and no internet are required. You'll need a microphone. There's no account to create. Windows on ARM isn't supported yet.",
+      "Windows 10 or 11, 64-bit (x64), a microphone, and any modern CPU. No GPU, account, or internet connection is required for transcription. Windows on ARM isn't supported yet.",
   },
   {
     question: 'Is there a Mac or Linux version?',
@@ -63,12 +67,12 @@ const FAQ_ITEMS = [
   {
     question: 'How is Inumaki different from Wispr Flow?',
     answer:
-      'Wispr Flow is a polished, paid, cloud-based tool with AI auto-editing and 100+ languages. Inumaki is the free, open-source, fully-local alternative: your audio never leaves your PC, there is no account or subscription, and you can audit every line of code. The trade-off is that Inumaki is English-only and Windows-only today, and does not yet do AI rewriting. If privacy, price, and offline use matter most, Inumaki is for you.',
+      'Wispr Flow is a polished, paid, cross-platform cloud dictation product. Inumaki is the free, open-source, local Windows alternative: your audio stays on your PC, there is no account or subscription, and you can audit the source. Wispr wins on language breadth and platform coverage; Inumaki wins on privacy, price, and offline Windows use.',
   },
   {
     question: 'How do I uninstall it?',
     answer:
-      'Inumaki uninstalls like any standard Windows app — through Settings → Apps → Installed apps, or "Add or remove programs". Because nothing is stored in the cloud and no account exists, removing the app removes everything; there is no data left on a server.',
+      'Inumaki uninstalls like any standard Windows app through Settings -> Apps -> Installed apps, or "Add or remove programs". Because there is no cloud account required for the local app, uninstalling removes the desktop client from your PC.',
   },
   {
     question: 'Why is it called Inumaki?',
@@ -88,7 +92,7 @@ const COMPARISON_ROWS = [
   },
   {
     feature: 'Where audio is processed',
-    inumaki: '100% on your device',
+    inumaki: 'On your Windows PC with whisper.cpp',
     rival: 'Uploaded to the cloud',
     inumakiWins: true,
   },
@@ -112,7 +116,7 @@ const COMPARISON_ROWS = [
   },
   {
     feature: 'Telemetry / data collection',
-    inumaki: 'None',
+    inumaki: 'None for local transcription',
     rival: 'Context-awareness can send nearby text to servers',
     inumakiWins: true,
   },
@@ -161,7 +165,7 @@ const PERSONAS = [
   {
     title: 'Privacy-first & offline teams',
     icon: <ShieldGlyph />,
-    body: 'Legal, healthcare, finance, government, and travelers: dictate where cloud tools are blocked or untrusted. Your audio physically cannot leave the device.',
+    body: 'Legal, healthcare, finance, government, and travelers: dictate where cloud tools are blocked or untrusted. Your audio stays on your device.',
   },
 ];
 
@@ -187,6 +191,7 @@ export default async function HomePage() {
     { label: 'Released', value: publishedDate },
     { label: 'Size', value: assetLabel },
     { label: 'Platform', value: 'Windows x64' },
+    { label: 'Processing', value: 'Local whisper.cpp' },
     { label: 'License', value: 'MIT' },
   ];
   if (starLabel) {
@@ -196,10 +201,10 @@ export default async function HomePage() {
   const systemRequirements = [
     { label: 'OS', value: 'Windows 10 or 11 (64-bit · x64)' },
     { label: 'Processor', value: 'Any modern x64 CPU — no GPU' },
-    { label: 'Disk', value: `~${assetLabel} download · model bundled` },
-    { label: 'Internet', value: 'Not required — 100% offline' },
+    { label: 'Disk', value: `~${assetLabel} download` },
+    { label: 'Internet', value: 'Not required for transcription' },
     { label: 'Microphone', value: 'Required' },
-    { label: 'Account', value: 'None' },
+    { label: 'Account', value: 'None required' },
   ];
 
   // Hand-tuned, organic waveform envelope (not a tiling modulo pattern).
@@ -242,8 +247,8 @@ export default async function HomePage() {
         isAccessibleForFree: true,
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         featureList: [
-          'Global hotkey Ctrl+Shift+Space',
-          '100% local on-device transcription via whisper.cpp',
+          `Global hotkey ${HOTKEY}`,
+          '100% local transcription via whisper.cpp',
           'Works in any Windows app',
           'No account, no cloud, no subscription',
         ],
@@ -328,6 +333,18 @@ export default async function HomePage() {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <a
+              href="/wispr-flow-alternative"
+              className="hidden min-h-[44px] items-center rounded-full px-3 text-sm font-medium text-slate-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#42caff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f14] md:inline-flex"
+            >
+              Compare
+            </a>
+            <a
+              href="/privacy"
+              className="hidden min-h-[44px] items-center rounded-full px-3 text-sm font-medium text-slate-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#42caff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f14] md:inline-flex"
+            >
+              Privacy
+            </a>
+            <a
               href={INUMAKI_REPO_URL}
               target="_blank"
               rel="noreferrer noopener"
@@ -363,7 +380,7 @@ export default async function HomePage() {
                   <span className="ink-ping absolute inline-flex h-full w-full rounded-full bg-[#00aeef] opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-[#42caff]" />
                 </span>
-                Free &amp; open source · runs 100% on your machine
+                Free &amp; open source · runs locally on your machine
               </span>
 
               <h1 className="mt-7">
@@ -377,14 +394,14 @@ export default async function HomePage() {
                   className="ink-reveal ink-delay-2 mt-4 block text-balance text-4xl font-semibold leading-[1.08] text-white drop-shadow-[0_0_30px_rgba(0,174,239,0.18)] sm:text-6xl"
                   style={{ fontFamily: 'var(--font-display)' }}
                 >
-                  Press a key. Speak.{' '}
+                  Free local voice-to-text.{' '}
                   <span className="text-[#42caff]">Paste clean text</span> anywhere.
                 </span>
                 <span
                   className="ink-reveal ink-delay-3 mt-4 block text-sm text-slate-400 sm:text-base"
                   style={{ fontFamily: 'var(--font-mono)' }}
                 >
-                  Local voice-to-text for Windows · whisper.cpp on-device
+                  Windows dictation · whisper.cpp on-device
                 </span>
               </h1>
 
@@ -392,7 +409,7 @@ export default async function HomePage() {
                 Inumaki is a free, open-source voice-to-text app for Windows that lives in your
                 tray. Hit a global hotkey, talk in any app, and your transcript is ready to paste at
                 the cursor — transcribed locally with whisper.cpp. No account, no cloud, no
-                subscription. Your audio never leaves the machine.
+                subscription.
               </p>
 
               {/* CTAs */}
@@ -420,7 +437,7 @@ export default async function HomePage() {
                 className="ink-reveal ink-delay-4 mt-3 text-xs text-slate-400"
                 style={{ fontFamily: 'var(--font-mono)' }}
               >
-                Windows 10 &amp; 11 · {releaseLabel} · {assetLabel} · .exe · no account, no sign-up
+                Windows 10 &amp; 11 · {releaseLabel} · {assetLabel} · .exe · no account required
               </p>
               <p className="mt-1 text-xs text-slate-400">
                 Unsigned indie build — if Windows shows a SmartScreen prompt, choose “More info →
@@ -431,6 +448,9 @@ export default async function HomePage() {
                 >
                   Why?
                 </a>
+              </p>
+              <p className="mt-1 max-w-xl text-xs leading-relaxed text-slate-500 lg:mx-0">
+                {PROCESSING_DISCLOSURE}
               </p>
               {!asset && (
                 <p className="mt-1 text-xs text-slate-400">
@@ -580,12 +600,12 @@ export default async function HomePage() {
             <FeatureCell
               title="100% local transcription"
               icon={<ShieldGlyph />}
-              body="whisper.cpp and the model ship inside the open-source build. Your microphone audio is processed on device and never uploaded anywhere."
+              body="whisper.cpp runs on your Windows PC. Your microphone audio is processed on device and never uploaded for transcription."
             />
             <FeatureCell
               title="Windows 10 & 11, tray-first"
               icon={<WindowsGlyph />}
-              body="Lives quietly in the system tray and works in every Windows app — editors, chat, browsers, terminals. No browser tab, no account."
+              body="Lives quietly in the system tray and works in every Windows app — editors, chat, browsers, terminals."
             />
             <FeatureCell
               title="Open source · MIT"
@@ -595,17 +615,17 @@ export default async function HomePage() {
             <FeatureCell
               title="No account, no telemetry"
               icon={<NoAccountGlyph />}
-              body="No sign-up, no login, no API key, no usage cap. Download, run, dictate. Nothing about you is collected or uploaded — ever."
+              body="No sign-up, no login, no API key, no usage cap. Download, run, dictate. Nothing about your speech is collected or uploaded."
             />
             <FeatureCell
               title="Model bundled — zero setup"
               icon={<BundleGlyph />}
-              body="The ggml-base.en whisper.cpp model ships inside the app. No extra downloads, no model manager, no cloud key. It works on first launch."
+              body="The whisper.cpp model ships inside the app. No extra downloads, no model manager, no cloud key. It works on first launch."
             />
             <FeatureCell
               title="Works offline, even on a plane"
               icon={<OfflineGlyph />}
-              body="Lightweight and tray-resident, Inumaki runs entirely on your CPU — no GPU and no internet required. Dictate on a flight or on bad Wi-Fi."
+              body="Lightweight and tray-resident, Inumaki runs on your CPU — no GPU and no internet required for transcription."
             />
           </div>
         </section>
@@ -625,7 +645,7 @@ export default async function HomePage() {
               Three keystrokes from voice to text
             </h2>
             <p className="mt-4 text-pretty text-slate-300">
-              No setup rituals, no copy-paste shuffle. Inumaki fits into the way you already work.
+              Install the tray app once and keep dictation available wherever you type.
             </p>
           </div>
 
@@ -638,7 +658,7 @@ export default async function HomePage() {
             <Step
               n="02"
               title="Speak naturally"
-              body="Talk like you would to a colleague. When you stop, whisper.cpp transcribes on device in seconds — fully offline, no network round-trip."
+              body="Talk like you would to a colleague. When you stop, whisper.cpp transcribes on device in seconds — fully offline, no network round trip."
             />
             <Step
               n="03"
@@ -664,14 +684,13 @@ export default async function HomePage() {
                 Your voice never leaves your PC. Here’s how.
               </h2>
               <p className="mt-4 text-pretty text-slate-300">
-                There is no cloud step to trust, because there is no cloud step. Audio is captured,
-                transcribed by whisper.cpp on your own CPU, and written to your clipboard — all
-                on-device.
+                There is no cloud transcription step to trust. Audio is captured, transcribed by
+                whisper.cpp on your own CPU, and written to your clipboard — all on-device.
               </p>
             </div>
 
             {/* Flow diagram */}
-            <div className="mx-auto mt-12 flex max-w-4xl flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center">
+            <div className="mx-auto mt-12 flex max-w-5xl flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center">
               <FlowNode icon={<MicGlyph />} title="Your microphone" subtitle="captured locally" />
               <FlowArrow />
               <FlowNode
@@ -697,15 +716,15 @@ export default async function HomePage() {
             <div className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-3">
               <GuaranteeCard
                 title="No network calls to transcribe"
-                body="Works fully offline, even with Wi-Fi off. The only network use is an optional check for a new version."
+                body="Works offline, even with Wi-Fi off. Transcription is handled locally by whisper.cpp."
               />
               <GuaranteeCard
                 title="No account, no telemetry"
-                body="Nothing to sign up for and nothing phoned home. There is no analytics SDK and no usage tracking."
+                body="Nothing to sign up for and nothing phoned home for the local transcription loop."
               />
               <GuaranteeCard
                 title="Model bundled — no BYOK"
-                body="ggml-base.en ships inside the build. No extra downloads, no API key, no cloud model to call."
+                body="The local speech model ships inside the build. No extra downloads, no API key, no cloud model to call."
               />
             </div>
 
@@ -713,7 +732,7 @@ export default async function HomePage() {
             <div className="mx-auto mt-10 flex max-w-3xl flex-col items-center gap-4 rounded-[1.5rem] border border-[#00aeef]/25 bg-[#00aeef]/[0.06] p-6 text-center sm:p-8">
               <p className="text-pretty text-slate-200">
                 Don’t take our word for it. Inumaki is MIT-licensed and the transcription path is
-                open — read the exact code that proves your audio stays local.
+                open — read the exact code that keeps your audio local.
               </p>
               <a
                 href={INUMAKI_REPO_URL}
@@ -744,8 +763,9 @@ export default async function HomePage() {
               Why free and local beats cloud dictation
             </h2>
             <p className="mt-4 text-pretty text-slate-300">
-              Wispr Flow is a polished, paid, cloud tool — and genuinely good at AI formatting and
-              100+ languages. Here’s exactly where each one wins, with nothing hidden.
+              Wispr Flow is a polished, paid, cross-platform cloud tool. Inumaki is a free,
+              open-source, local Windows dictation app. Here’s exactly where each one wins, with
+              nothing hidden.
             </p>
           </div>
 
@@ -979,7 +999,7 @@ export default async function HomePage() {
 
       {/* ===== FOOTER ===== */}
       <footer className="border-t border-white/5">
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-10 px-4 py-12 sm:grid-cols-[1.4fr_1fr_1fr] sm:px-6">
+        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-10 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-3">
               <Image
@@ -1003,6 +1023,7 @@ export default async function HomePage() {
 
           <FooterColumn title="Product">
             <FooterLink href={INUMAKI_DOWNLOAD_URL}>Download for Windows</FooterLink>
+            <FooterLink href="/help">Install guide</FooterLink>
             <FooterLink href="#faq">FAQ</FooterLink>
             <FooterLink href="#sysreq-heading">System requirements</FooterLink>
             <FooterLink href={INUMAKI_RELEASES_URL} external>
@@ -1010,15 +1031,20 @@ export default async function HomePage() {
             </FooterLink>
           </FooterColumn>
 
-          <FooterColumn title="Open source">
+          <FooterColumn title="Learn">
+            <FooterLink href="/privacy">Privacy & processing</FooterLink>
+            <FooterLink href="/wispr-flow-alternative">Wispr Flow alternative</FooterLink>
             <FooterLink href={INUMAKI_REPO_URL} external>
               View source on GitHub
             </FooterLink>
-            <FooterLink href={`${INUMAKI_REPO_URL}/issues`} external>
-              Report an issue
-            </FooterLink>
             <FooterLink href={`${INUMAKI_REPO_URL}/blob/main/LICENSE`} external>
               License (MIT)
+            </FooterLink>
+          </FooterColumn>
+
+          <FooterColumn title="Open source">
+            <FooterLink href={`${INUMAKI_REPO_URL}/issues`} external>
+              Report an issue
             </FooterLink>
             <FooterLink href="https://www.camie.tech" external>
               www.camie.tech
