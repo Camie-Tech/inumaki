@@ -1,6 +1,6 @@
 {
   "name": "@inumaki/desktop",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "private": true,
   "description": "Inumaki AI — voice-to-text dictation for Windows.",
   "author": "Camie Tech",
@@ -63,7 +63,12 @@
       "dist/**/*",
       "assets/**/*"
     ],
-    "extraResources": [],
+    "extraResources": [
+      {
+        "from": "../../releases/inumaki-oss/Inumaki-AI-0.1.1-win-unpacked/win-unpacked/resources/whisper",
+        "to": "whisper"
+      }
+    ],
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,

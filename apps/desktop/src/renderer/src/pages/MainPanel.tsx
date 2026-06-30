@@ -8,6 +8,9 @@ import { OutputDisplay } from '../components/OutputDisplay';
 import { StatusBar } from '../components/StatusBar';
 import type { OutputMode, ProcessAudioResponse } from '@inumaki/shared';
 
+declare const __API_SERVER__: string;
+const API_DEFAULT = typeof __API_SERVER__ !== 'undefined' ? __API_SERVER__ : 'http://localhost:3000';
+
 interface MainPanelProps {
   onShowPreview: (data: { transcript: string; output: string; mode: string }) => void;
 }
@@ -18,7 +21,7 @@ export function MainPanel({ onShowPreview }: MainPanelProps) {
   const [tonePreference, setTonePreference] = useState('neutral');
   const [autoPaste, setAutoPaste] = useState(true);
   const [previewBeforePaste, setPreviewBeforePaste] = useState(false);
-  const [apiBase, setApiBase] = useState('');
+  const [apiBase, setApiBase] = useState(API_DEFAULT);
   const [lastResult, setLastResult] = useState<ProcessAudioResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const hotkeyActiveRef = useRef(false);
@@ -36,7 +39,8 @@ export function MainPanel({ onShowPreview }: MainPanelProps) {
       if (tone) setTonePreference(tone as string);
       if (ap !== undefined) setAutoPaste(ap as boolean);
       if (pp !== undefined) setPreviewBeforePaste(pp as boolean);
-      setApiBase((base as string) || 'http://localhost:3000');
+      const savedApiBase = typeof base === 'string' ? base.trim().replace(/\/+$/, '') : '';
+      setApiBase(savedApiBase || API_DEFAULT);
     });
   }, []);
 

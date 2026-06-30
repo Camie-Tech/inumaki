@@ -17,6 +17,7 @@ import { setupAutoUpdater } from './updater';
 import { captureForegroundWindow, pasteText } from './windows-input';
 import { registerHotkey, unregisterHotkeys } from './hotkey-registration';
 import { DEFAULT_HOTKEY, shouldMigrateHotkey } from '../shared/hotkeys';
+import { processAudioLocally } from './local-transcription';
 
 // ─── Constants ────────────────────────────────────────────────────
 const isDev = process.env.NODE_ENV === 'development';
@@ -322,6 +323,10 @@ function setupIpc() {
         hideOverlay(2600);
       }
     }
+  });
+
+  ipcMain.handle('process-audio-local', async (_event, request) => {
+    return processAudioLocally(request);
   });
 
   // Window controls

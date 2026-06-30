@@ -13,6 +13,13 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'dummy_key_for_build') {
+    return NextResponse.json(
+      { error: 'Transcription backend is not configured', code: 'OPENAI_API_KEY_MISSING' },
+      { status: 503 }
+    );
+  }
+
   let body: ProcessAudioRequest;
   try {
     body = schema.parse(await req.json());
@@ -38,7 +45,12 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error('[process] error:', err);
     const errorCode = err?.code ?? err?.type ?? 'UNKNOWN_ERROR';
-    return NextResponse.json({ error: 'Processing failed', code: errorCode }, { status: 500 });
+    const status = errorCode === 'invalid_api_key' ? 503 : 500;
+    const error =
+      errorCode === 'invalid_api_key'
+        ? 'Transcription backend rejected its API key'
+        : 'Processing failed';
+    return NextResponse.json({ error, code: errorCode }, { status });
   }
 
   const response: ProcessAudioResponse = { transcript, output, mode };

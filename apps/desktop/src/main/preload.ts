@@ -1,6 +1,11 @@
 // apps/desktop/src/main/preload.ts
 import { contextBridge, ipcRenderer } from 'electron';
-import type { RecordingStateChange, OverlayStateChange } from '@inumaki/shared';
+import type {
+  OverlayStateChange,
+  ProcessAudioRequest,
+  ProcessAudioResponse,
+  RecordingStateChange,
+} from '@inumaki/shared';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   // ─── Recording ──────────────────────────────────────────────────
@@ -14,13 +19,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeAllListeners('start-recording');
   },
 
-  onProcessAudio: (cb: (data: any) => void) => {
+  onProcessAudio: (cb: (data: unknown) => void) => {
     ipcRenderer.on('process-audio', (_e, data) => cb(data));
     return () => ipcRenderer.removeAllListeners('process-audio');
   },
 
   sendProcessResult: (state: string, message?: string) => {
     ipcRenderer.send('process-audio-result', { state, message });
+  },
+
+  processAudio: (request: ProcessAudioRequest): Promise<ProcessAudioResponse> => {
+    return ipcRenderer.invoke('process-audio-local', request);
   },
 
   // ─── Listening HUD overlay ──────────────────────────────────────
@@ -66,8 +75,9 @@ declare global {
     electronAPI: {
       onRecordingStateChange: (cb: (data: RecordingStateChange) => void) => () => void;
       onStartRecording: (cb: () => void) => () => void;
-      onProcessAudio: (cb: (data: any) => void) => () => void;
+      onProcessAudio: (cb: (data: unknown) => void) => () => void;
       sendProcessResult: (state: string, message?: string) => void;
+      processAudio: (request: ProcessAudioRequest) => Promise<ProcessAudioResponse>;
       onOverlayState: (cb: (data: OverlayStateChange) => void) => () => void;
       pasteText: (text: string) => void;
       copyText: (text: string) => void;
