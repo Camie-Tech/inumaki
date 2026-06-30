@@ -1,5 +1,6 @@
 // apps/desktop/src/main/store.ts
 import ElectronStore from 'electron-store';
+import { DEFAULT_HOTKEY } from '../shared/hotkeys';
 
 interface StoreSchema {
   hotkey: string;
@@ -9,6 +10,7 @@ interface StoreSchema {
   microphoneId: string;
   tonePreference: string;
   startMinimized: boolean;
+  showOverlay: boolean;
   onboardingComplete: boolean;
   apiBase: string;
 }
@@ -26,13 +28,14 @@ interface TypedStore {
 
 export const store = new ElectronStore<StoreSchema>({
   defaults: {
-    hotkey: 'Control+Shift+Space',
+    hotkey: DEFAULT_HOTKEY,
     defaultMode: 'clean',
     autoPaste: true,
     previewBeforePaste: false,
     microphoneId: 'default',
     tonePreference: 'neutral',
     startMinimized: false,
+    showOverlay: true,
     onboardingComplete: false,
     apiBase: 'https://inumaki-five.vercel.app',
   },

@@ -1,6 +1,6 @@
 {
   "name": "@inumaki/desktop",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "description": "Inumaki AI — voice-to-text dictation for Windows.",
   "author": "Camie Tech",
@@ -56,6 +56,9 @@
       "icon": "assets/icon.png",
       "verifyUpdateCodeSignature": false
     },
+    "asarUnpack": [
+      "node_modules/node-global-key-listener/bin/WinKeyServer.exe"
+    ],
     "files": [
       "dist/**/*",
       "assets/**/*"

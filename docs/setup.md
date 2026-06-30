@@ -55,5 +55,5 @@ For a full local smoke test:
 1. Start the web app.
 2. Start the desktop app.
 3. Complete onboarding.
-4. Press `Ctrl+Shift+Space`, speak, release the hotkey.
+4. Press `Windows+Alt`, speak, release the hotkey.
 5. Confirm the cleaned text is copied or pasted into the focused app.

@@ -1,5 +1,5 @@
 // apps/desktop/src/renderer/src/pages/MainPanel.tsx
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRecorder } from '../hooks/useRecorder';
 import { useStore } from '../hooks/useStore';
 import { ModeSelector } from '../components/ModeSelector';
@@ -21,6 +21,7 @@ export function MainPanel({ onShowPreview }: MainPanelProps) {
   const [apiBase, setApiBase] = useState('');
   const [lastResult, setLastResult] = useState<ProcessAudioResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const hotkeyActiveRef = useRef(false);
 
   // Load preferences from store
   useEffect(() => {
@@ -76,15 +77,28 @@ export function MainPanel({ onShowPreview }: MainPanelProps) {
 
   // Handle keyboard shortcut in renderer (fallback if main process hotkey doesn't fire)
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.code === 'Space') {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey && e.altKey && !hotkeyActiveRef.current) {
+        hotkeyActiveRef.current = true;
         e.preventDefault();
-        if (state === 'recording') stopRecording();
-        else if (state === 'idle' || state === 'success') startRecording();
+        if (state === 'idle' || state === 'success') startRecording();
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (hotkeyActiveRef.current && (!e.metaKey || !e.altKey)) {
+        hotkeyActiveRef.current = false;
+        e.preventDefault();
+        if (state === 'recording') stopRecording();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [state, startRecording, stopRecording]);
 
   const handleModeChange = (m: OutputMode) => {

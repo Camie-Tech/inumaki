@@ -1,6 +1,6 @@
 // apps/desktop/src/main/preload.ts
 import { contextBridge, ipcRenderer } from 'electron';
-import type { IpcChannel, RecordingStateChange } from '@inumaki/shared';
+import type { RecordingStateChange, OverlayStateChange } from '@inumaki/shared';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   // ─── Recording ──────────────────────────────────────────────────
@@ -21,6 +21,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   sendProcessResult: (state: string, message?: string) => {
     ipcRenderer.send('process-audio-result', { state, message });
+  },
+
+  // ─── Listening HUD overlay ──────────────────────────────────────
+  // Driven by the main process for the global-hotkey dictation flow.
+  onOverlayState: (cb: (data: OverlayStateChange) => void) => {
+    ipcRenderer.on('overlay-state', (_e, data) => cb(data));
+    return () => ipcRenderer.removeAllListeners('overlay-state');
   },
 
   // ─── Clipboard / Paste ──────────────────────────────────────────
@@ -51,14 +58,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // ─── App ────────────────────────────────────────────────────────
   getAppVersion: (): Promise<string> => ipcRenderer.invoke('get-app-version'),
 
-  // ─── Auth ───────────────────────────────────────────────────────
-  openAuth: (url: string) => ipcRenderer.send('open-auth', url),
-  onDeepLinkToken: (
-    cb: (payload: { token?: string | null; code?: string | null; base?: string | null }) => void
-  ) => {
-    ipcRenderer.on('deep-link-token', (_e, payload) => cb(payload));
-    return () => ipcRenderer.removeAllListeners('deep-link-token');
-  },
 });
 
 // Type declaration for window.electronAPI
@@ -69,6 +68,7 @@ declare global {
       onStartRecording: (cb: () => void) => () => void;
       onProcessAudio: (cb: (data: any) => void) => () => void;
       sendProcessResult: (state: string, message?: string) => void;
+      onOverlayState: (cb: (data: OverlayStateChange) => void) => () => void;
       pasteText: (text: string) => void;
       copyText: (text: string) => void;
       updateHotkey: (hotkey: string) => void;
@@ -79,10 +79,6 @@ declare global {
       storeGet: (key: string) => Promise<unknown>;
       storeSet: (key: string, value: unknown) => Promise<void>;
       getAppVersion: () => Promise<string>;
-      openAuth: (url: string) => void;
-      onDeepLinkToken: (
-        cb: (payload: { token?: string | null; code?: string | null; base?: string | null }) => void
-      ) => () => void;
     };
   }
 }

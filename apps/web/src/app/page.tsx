@@ -653,7 +653,7 @@ export default async function HomePage() {
             <Step
               n="01"
               title="Press the hotkey"
-              body="Anywhere in Windows, tap Ctrl + Shift + Space. Inumaki starts listening instantly from the tray."
+              body="Anywhere in Windows, hold Windows + Alt. Inumaki starts listening instantly from the tray."
             />
             <Step
               n="02"

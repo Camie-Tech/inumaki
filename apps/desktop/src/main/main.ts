@@ -2,38 +2,41 @@
 import {
   app,
   BrowserWindow,
-  globalShortcut,
   ipcMain,
   clipboard,
   Tray,
   Menu,
   nativeImage,
-  shell,
   Notification,
+  screen,
 } from 'electron';
 import path from 'path';
 import { AudioRecorder } from './audio-recorder';
 import { store } from './store';
 import { setupAutoUpdater } from './updater';
 import { captureForegroundWindow, pasteText } from './windows-input';
+import { registerHotkey, unregisterHotkeys } from './hotkey-registration';
+import { DEFAULT_HOTKEY, shouldMigrateHotkey } from '../shared/hotkeys';
 
 // ─── Constants ────────────────────────────────────────────────────
 const isDev = process.env.NODE_ENV === 'development';
 const DEV_RENDERER_URL = 'http://localhost:5173';
 
-if (process.defaultApp) {
-  if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient('inumaki', process.execPath, [path.resolve(process.argv[1])])
-  }
-} else {
-  app.setAsDefaultProtocolClient('inumaki')
-}
-
 // ─── State ────────────────────────────────────────────────────────
 let mainWindow: BrowserWindow | null = null;
+let overlayWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let recorder: AudioRecorder | null = null;
-let currentHotkey = store.get('hotkey', 'Control+Shift+Space') as string;
+
+// The listening HUD only follows the global-hotkey dictation flow. The in-app
+// record button drives the renderer directly and shows its own UI, so this flag
+// keeps the result handler from popping the overlay for in-window recordings.
+let overlayFlowActive = false;
+let overlayHideTimer: ReturnType<typeof setTimeout> | null = null;
+
+// HUD pill dimensions (window is transparent; the pill is centered within it).
+const OVERLAY_WIDTH = 300;
+const OVERLAY_HEIGHT = 84;
 
 // ─── Window ───────────────────────────────────────────────────────
 function createMainWindow() {
@@ -79,38 +82,99 @@ function createMainWindow() {
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   }
 
-  // Handle first-launch deep link on Windows
-  if (process.platform === 'win32') {
-    const deepLinkUrl = process.argv.find((arg) => arg.startsWith('inumaki://'));
-    if (deepLinkUrl) {
-      setTimeout(() => handleDeepLink(deepLinkUrl), 1000);
-    }
-  }
 }
 
-// ─── Deep Linking ──────────────────────────────────────────────────
-function handleDeepLink(url: string) {
-  try {
-    const urlObj = new URL(url);
-    if (urlObj.protocol === 'inumaki:' && urlObj.hostname === 'auth') {
-      const token = urlObj.searchParams.get('token');
-      const code = urlObj.searchParams.get('code');
-      const base = urlObj.searchParams.get('base');
-      if ((token || code) && mainWindow) {
-        mainWindow.webContents.send('deep-link-token', { token, code, base });
-        mainWindow.show();
-        mainWindow.focus();
-      }
-    }
-  } catch (err) {
-    console.error('Failed to parse deep link:', err);
+// ─── Listening HUD overlay ────────────────────────────────────────
+// A frameless, transparent, click-through, non-focusable window that floats the
+// "Inumaki is listening" pill. Created hidden at startup so the global hotkey can
+// reveal it instantly (showInactive) without ever stealing focus from the app
+// the user is dictating into.
+function createOverlayWindow() {
+  overlayWindow = new BrowserWindow({
+    width: OVERLAY_WIDTH,
+    height: OVERLAY_HEIGHT,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    movable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    focusable: false,
+    hasShadow: false,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  // Float above virtually everything, including most fullscreen apps.
+  overlayWindow.setAlwaysOnTop(true, 'screen-saver');
+  overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  // Purely informational: never intercept clicks meant for the app underneath.
+  overlayWindow.setIgnoreMouseEvents(true);
+
+  if (isDev) {
+    overlayWindow.loadURL(`${DEV_RENDERER_URL}#overlay`);
+  } else {
+    overlayWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'), {
+      hash: 'overlay',
+    });
   }
+
+  overlayWindow.on('closed', () => {
+    overlayWindow = null;
+  });
 }
 
-app.on('open-url', (event, url) => {
-  event.preventDefault();
-  handleDeepLink(url);
-});
+// Center the pill horizontally near the bottom of whichever display the cursor
+// is on, so it appears where the user is currently working on multi-monitor setups.
+function positionOverlay() {
+  if (!overlayWindow) return;
+  const cursor = screen.getCursorScreenPoint();
+  const { workArea } = screen.getDisplayNearestPoint(cursor);
+  const [w, h] = overlayWindow.getSize();
+  const x = Math.round(workArea.x + (workArea.width - w) / 2);
+  const y = Math.round(workArea.y + workArea.height - h - 96);
+  overlayWindow.setPosition(x, y);
+}
+
+function sendOverlayState(state: string, message?: string) {
+  overlayWindow?.webContents.send('overlay-state', { state, message });
+}
+
+function showOverlay(state: string) {
+  if (!overlayWindow) return;
+  if (store.get('showOverlay', true) === false) return;
+
+  if (overlayHideTimer) {
+    clearTimeout(overlayHideTimer);
+    overlayHideTimer = null;
+  }
+
+  positionOverlay();
+  sendOverlayState(state);
+  // showInactive() reveals the window without activating it, preserving the
+  // user's focused app so the eventual paste lands in the right place.
+  if (!overlayWindow.isVisible()) overlayWindow.showInactive();
+}
+
+// Fade the pill out (CSS), then hide the window after the animation settles.
+function hideOverlay(delayMs: number) {
+  if (overlayHideTimer) clearTimeout(overlayHideTimer);
+  overlayHideTimer = setTimeout(() => {
+    sendOverlayState('hiding');
+    overlayHideTimer = setTimeout(() => {
+      overlayWindow?.hide();
+      sendOverlayState('idle');
+      overlayHideTimer = null;
+    }, 260);
+  }, delayMs);
+}
 
 // ─── Tray ─────────────────────────────────────────────────────────
 function createTray() {
@@ -168,30 +232,6 @@ function updateTrayMenu(state?: string) {
   tray?.setContextMenu(contextMenu);
 }
 
-// ─── Hotkey Registration ──────────────────────────────────────────
-function registerHotkey(hotkey: string) {
-  globalShortcut.unregisterAll();
-
-  const registered = globalShortcut.register(hotkey, () => {
-    if (!recorder) return;
-
-    if (recorder.isRecording()) {
-      stopRecording();
-    } else {
-      startRecording();
-    }
-  });
-
-  if (!registered) {
-    console.error(`Failed to register hotkey: ${hotkey}`);
-    // Try fallback
-    globalShortcut.register('Control+Shift+Space', () => {
-      if (!recorder?.isRecording()) startRecording();
-      else stopRecording();
-    });
-  }
-}
-
 // ─── Recording ────────────────────────────────────────────────────
 function startRecording() {
   if (!recorder || recorder.isRecording()) return;
@@ -205,6 +245,10 @@ function startRecording() {
   mainWindow?.webContents.send('start-recording');
   mainWindow?.webContents.send('recording-state-change', { state: 'recording' });
   updateTrayMenu('Recording…');
+
+  // Reveal the listening HUD for this (hotkey-initiated) dictation session.
+  overlayFlowActive = true;
+  showOverlay('listening');
 }
 
 function stopRecording() {
@@ -214,10 +258,26 @@ function stopRecording() {
   mainWindow?.webContents.send('recording-state-change', { state: 'processing' });
   updateTrayMenu('Processing…');
 
+  if (overlayFlowActive) sendOverlayState('processing');
+
   // The renderer holds the captured audio — tell it to stop, encode, and process.
   // It posts to the API and, on success, calls pasteText/copyText back to main.
   mainWindow?.webContents.send('process-audio');
 }
+
+const hotkeyActions = {
+  toggle: () => {
+    if (!recorder) return;
+
+    if (recorder.isRecording()) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  },
+  start: startRecording,
+  stop: stopRecording,
+};
 
 // ─── IPC Handlers ────────────────────────────────────────────────
 function setupIpc() {
@@ -240,9 +300,8 @@ function setupIpc() {
 
   // Hotkey update
   ipcMain.on('update-hotkey', (_event, hotkey: string) => {
-    currentHotkey = hotkey;
-    store.set('hotkey', hotkey);
-    registerHotkey(hotkey);
+    const registeredHotkey = registerHotkey(hotkey, hotkeyActions);
+    store.set('hotkey', registeredHotkey);
   });
 
   // State feedback from renderer
@@ -250,6 +309,19 @@ function setupIpc() {
     mainWindow?.webContents.send('recording-state-change', { state, message });
     updateTrayMenu(state === 'success' ? 'Done' : state);
     setTimeout(() => updateTrayMenu(), 3000);
+
+    // Reflect the outcome in the HUD, then fade it out (only when the session
+    // was started by the global hotkey).
+    if (overlayFlowActive) {
+      overlayFlowActive = false;
+      if (state === 'success') {
+        sendOverlayState('success');
+        hideOverlay(1100);
+      } else {
+        sendOverlayState('error', message);
+        hideOverlay(2600);
+      }
+    }
   });
 
   // Window controls
@@ -266,23 +338,22 @@ function setupIpc() {
     store.set(key, value);
   });
 
-  // Open external auth
-  ipcMain.on('open-auth', (_event, url: string) => {
-    shell.openExternal(url);
-  });
 }
 
 // ─── App Lifecycle ────────────────────────────────────────────────
 app.whenReady().then(async () => {
   createMainWindow();
+  createOverlayWindow();
   createTray();
   setupIpc();
 
   recorder = new AudioRecorder();
 
   // Register hotkey
-  const savedHotkey = store.get('hotkey', 'Control+Shift+Space') as string;
-  registerHotkey(savedHotkey);
+  const storedHotkey = store.get('hotkey', DEFAULT_HOTKEY);
+  const savedHotkey = shouldMigrateHotkey(storedHotkey) ? DEFAULT_HOTKEY : storedHotkey;
+  const registeredHotkey = registerHotkey(savedHotkey, hotkeyActions);
+  store.set('hotkey', registeredHotkey);
 
   if (!isDev) {
     setupAutoUpdater();
@@ -299,7 +370,11 @@ app.on('activate', () => {
 
 app.on('will-quit', () => {
   if (app.isReady()) {
-    globalShortcut.unregisterAll();
+    unregisterHotkeys();
+  }
+  if (overlayHideTimer) {
+    clearTimeout(overlayHideTimer);
+    overlayHideTimer = null;
   }
   recorder?.cleanup();
 });
@@ -309,17 +384,11 @@ const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
 } else {
-  app.on('second-instance', (_event, argv) => {
+  app.on('second-instance', () => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.show();
       mainWindow.focus();
-    }
-    
-    // Windows/Linux deep link processing in second instance
-    const url = argv.find((arg) => arg.startsWith('inumaki://'));
-    if (url) {
-      handleDeepLink(url);
     }
   });
 }

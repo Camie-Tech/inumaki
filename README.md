@@ -41,7 +41,7 @@ corepack pnpm -r typecheck
 
 1. Launch the desktop app.
 2. Complete the short first-run onboarding.
-3. Press `Ctrl+Shift+Space` to record.
+3. Press `Windows+Alt` to record.
 4. Release the hotkey to process the audio.
 5. Inumaki copies or pastes the cleaned text into the focused app.
 

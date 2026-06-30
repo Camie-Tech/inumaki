@@ -205,7 +205,7 @@ export function RecordButton({ state, elapsed, onStart, onStop }: RecordButtonPr
 
       {/* Shortcut hint */}
       <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
-        Ctrl + Shift + Space
+        Windows + Alt
       </div>
     </div>
   );

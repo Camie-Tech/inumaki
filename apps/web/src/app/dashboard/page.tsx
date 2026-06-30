@@ -22,7 +22,7 @@ export default async function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-3">
           {[
             ['1', 'Open the app', 'Launch Inumaki and keep it running in the tray.'],
-            ['2', 'Press the hotkey', 'Use Ctrl+Shift+Space to start and stop dictation.'],
+            ['2', 'Press the hotkey', 'Use Windows+Alt to start and stop dictation.'],
             ['3', 'Paste anywhere', 'Your cleaned text is pasted into the active window.'],
           ].map(([step, title, body]) => (
             <div key={step} className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">

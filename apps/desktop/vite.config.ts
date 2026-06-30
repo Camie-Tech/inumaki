@@ -22,6 +22,9 @@ export default defineConfig(({ mode }) => {
           vite: {
             build: {
               outDir: path.resolve(__dirname, 'dist/main'),
+              rollupOptions: {
+                external: ['node-global-key-listener'],
+              },
             },
           },
         },

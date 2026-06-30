@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../hooks/useStore';
 import type { OutputMode } from '@inumaki/shared';
+import { DEFAULT_HOTKEY, HOTKEY_OPTIONS, normalizeHotkey } from '../../../shared/hotkeys';
 
 const TONES = ['neutral', 'formal', 'casual', 'concise', 'friendly'];
-const HOTKEYS = ['Control+Shift+Space', 'Control+Alt+Space', 'Alt+Shift+R', 'Control+Shift+R'];
 
 interface SettingsPanelProps {
   onBack: () => void;
@@ -16,11 +16,12 @@ export function SettingsPanel({ onBack }: SettingsPanelProps) {
     defaultMode: 'clean' as OutputMode,
     autoPaste: true,
     previewBeforePaste: false,
-    hotkey: 'Control+Shift+Space',
+    hotkey: DEFAULT_HOTKEY,
     microphoneId: 'default',
     tonePreference: 'neutral',
     apiBase: '',
     startMinimized: false,
+    showOverlay: true,
   });
   const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
   const [saved, setSaved] = useState(false);
@@ -35,16 +36,18 @@ export function SettingsPanel({ onBack }: SettingsPanelProps) {
       get('tonePreference'),
       get('apiBase'),
       get('startMinimized'),
-    ]).then(([dm, ap, pp, hk, mic, tone, base, sm]) => {
+      get('showOverlay'),
+    ]).then(([dm, ap, pp, hk, mic, tone, base, sm, so]) => {
       setPrefs({
         defaultMode: (dm as OutputMode) || 'clean',
         autoPaste: (ap as boolean) ?? true,
         previewBeforePaste: (pp as boolean) ?? false,
-        hotkey: (hk as string) || 'Control+Shift+Space',
+        hotkey: normalizeHotkey(hk),
         microphoneId: (mic as string) || 'default',
         tonePreference: (tone as string) || 'neutral',
         apiBase: (base as string) || '',
         startMinimized: (sm as boolean) ?? false,
+        showOverlay: (so as boolean) ?? true,
       });
     });
 
@@ -101,7 +104,7 @@ export function SettingsPanel({ onBack }: SettingsPanelProps) {
               label="Hotkey"
               value={prefs.hotkey}
               onChange={(v) => update('hotkey', v)}
-              options={HOTKEYS.map((h) => ({ value: h, label: h }))}
+              options={HOTKEY_OPTIONS.map((h) => ({ value: h, label: h }))}
             />
           </Section>
 
@@ -140,6 +143,12 @@ export function SettingsPanel({ onBack }: SettingsPanelProps) {
               description="Review and edit output first"
               value={prefs.previewBeforePaste}
               onChange={(v) => update('previewBeforePaste', v)}
+            />
+            <ToggleField
+              label="Listening overlay"
+              description="Show a floating HUD while dictating"
+              value={prefs.showOverlay}
+              onChange={(v) => update('showOverlay', v)}
             />
             <ToggleField
               label="Start minimized"

@@ -14,7 +14,7 @@ Pass: no browser opens and no auth token is requested.
 ## Flow 2: Hotkey Recording
 
 1. Focus a text editor.
-2. Press `Ctrl+Shift+Space`.
+2. Press `Windows+Alt`.
 3. Speak a short sentence.
 4. Release the hotkey.
 

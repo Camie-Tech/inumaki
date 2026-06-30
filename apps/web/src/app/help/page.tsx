@@ -13,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata: Metadata = pageMetadata({
   title: 'Install and Use Inumaki on Windows',
   description:
-    'Download Inumaki for Windows, handle SmartScreen, use the Ctrl+Shift+Space hotkey, and troubleshoot common voice-to-text setup issues.',
+    'Download Inumaki for Windows, handle SmartScreen, use the Windows+Alt hotkey, and troubleshoot common voice-to-text setup issues.',
   path: '/help',
   keywords: [
     'install Inumaki',

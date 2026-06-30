@@ -75,3 +75,98 @@ html, body, #root {
 
 .animate-fade-in { animation: fade-in 200ms ease forwards; }
 .animate-slide-up { animation: slide-up 250ms ease forwards; }
+
+/* ─── Onboarding ─────────────────────────────────────────────── */
+@keyframes orb-rise {
+  from { transform: scale(0.85); opacity: 0; }
+  60%  { transform: scale(1.04); }
+  to   { transform: scale(1); opacity: 1; }
+}
+@keyframes pop-in {
+  0%   { transform: scale(0); opacity: 0; }
+  70%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes fade-in-right {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes key-hint-glow {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50%      { box-shadow: 0 0 14px 0 var(--accent-dim); }
+}
+@keyframes ring-once {
+  0%   { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+@keyframes expand-in {
+  from { opacity: 0; max-height: 0; }
+  to   { opacity: 1; max-height: 180px; }
+}
+
+.animate-step     { animation: fade-in-right 220ms cubic-bezier(0.4,0,0.2,1) forwards; }
+.animate-orb-rise { animation: orb-rise 380ms cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.animate-pop-in   { animation: pop-in 280ms cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.ob-ring-once     { animation: ring-once 1200ms ease-out forwards; }
+.ob-expand        { animation: expand-in 200ms ease forwards; overflow: hidden; }
+.key-hint-glow    { animation: key-hint-glow 2.4s ease-in-out infinite; }
+
+/* Primary CTA */
+.ob-primary {
+  transition: transform var(--transition), filter var(--transition),
+    background var(--transition), color var(--transition), border-color var(--transition);
+}
+.ob-primary:not(:disabled):hover  { transform: translateY(-1px); filter: brightness(1.12); }
+.ob-primary:not(:disabled):active { transform: translateY(0) scale(0.99); }
+.ob-arrow { display: inline-block; transition: transform var(--transition); }
+.ob-primary:not(:disabled):hover .ob-arrow { transform: translateX(3px); }
+
+/* Ghost link / button */
+.ob-ghost { transition: color var(--transition); }
+.ob-ghost:hover { color: var(--text-secondary) !important; }
+
+/* Mode card */
+.ob-card { transition: border-color var(--transition), background var(--transition), transform var(--transition); }
+.ob-card:hover { border-color: var(--border-active) !important; }
+.ob-card:focus-visible { outline: none; border-color: var(--border-active) !important; box-shadow: 0 0 0 2px var(--accent-dim); }
+
+/* Keycap */
+.ob-keycap {
+  transition: background 90ms ease, border-color 90ms ease, color 90ms ease,
+    transform 90ms ease, border-bottom-width 90ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in, .animate-slide-up, .animate-step,
+  .animate-orb-rise, .animate-pop-in, .ob-ring-once,
+  .ob-expand, .key-hint-glow { animation: none !important; }
+  .ob-primary:not(:disabled):hover { transform: none; }
+}
+
+/* ─── Listening HUD overlay ─────────────────────────────────────── */
+@keyframes hud-enter {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes hud-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(8px) scale(0.97); }
+}
+@keyframes hud-eq {
+  0%, 100% { transform: scaleY(0.28); }
+  50%      { transform: scaleY(1); }
+}
+@keyframes hud-pulse-ring {
+  0%   { transform: scale(0.85); opacity: 0.55; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.hud-enter { animation: hud-enter 180ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+.hud-exit  { animation: hud-exit 220ms ease forwards; }
+.hud-pulse-ring { animation: hud-pulse-ring 1.4s ease-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-enter, .hud-exit { animation: none !important; opacity: 1; }
+  .hud-eq-bar { animation: none !important; transform: scaleY(0.6); }
+  .hud-pulse-ring { animation: none !important; opacity: 0; }
+}

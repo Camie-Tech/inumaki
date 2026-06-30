@@ -94,7 +94,7 @@ title: {
 
 ### Final `<meta description>` — **[NOW, shipped]**
 ```
-Free, open-source voice-to-text for Windows. Press Ctrl+Shift+Space, speak in any app, and paste clean text. 100% local transcription via whisper.cpp — your audio never leaves your PC.
+Free, open-source voice-to-text for Windows. Press Windows+Alt, speak in any app, and paste clean text. 100% local transcription via whisper.cpp — your audio never leaves your PC.
 ```
 
 ### Heading hierarchy fix — **[NOW, shipped]**
@@ -172,7 +172,7 @@ A single landing page caps keyword surface. Expand into a small **content hub**;
 7. **dev.to / Hashnode** — a build/technical post with a canonical link back.
 8. **Listicle/roundup outreach** — get included in "best free offline dictation 2026" / "Wispr Flow alternatives" roundups.
 9. **Niche directories** — openalternative.co, console.dev, libhunt, slant.co, privacy-tool directories.
-10. **A short demo GIF/video** of the Ctrl+Shift+Space → paste flow on X/Bluesky/LinkedIn.
+10. **A short demo GIF/video** of the Windows+Alt → paste flow on X/Bluesky/LinkedIn.
 
 **Launch sequence:** (1) ship NOW substrate → (2) optimize GitHub + submit alternativeto + awesome-lists → (3) Product Hunt + Show HN the **same week**, coordinated with a release → (4) Reddit + dev.to + listicle outreach → (5) sustain via changelog/blog.
 **Critical prerequisite:** fix the product gaps (main-process recording, Ctrl+V simulation) so a Wispr refugee's first try actually pastes — otherwise the off-page push converts to bounces.

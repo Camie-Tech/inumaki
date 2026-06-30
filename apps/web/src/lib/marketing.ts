@@ -16,12 +16,12 @@ type PageMetadataInput = {
   keywords?: string[];
 };
 
-export const HOTKEY = 'Ctrl+Shift+Space';
+export const HOTKEY = 'Windows+Alt';
 
 export const PRODUCT_TITLE = 'Inumaki - Free Local Voice-to-Text for Windows';
 
 export const PRODUCT_DESCRIPTION =
-  'Free, open-source voice-to-text for Windows. Press Ctrl+Shift+Space, speak in any app, and paste clean text. 100% local transcription via whisper.cpp.';
+  'Free, open-source voice-to-text for Windows. Press Windows+Alt, speak in any app, and paste clean text. 100% local transcription via whisper.cpp.';
 
 export const PROCESSING_DISCLOSURE =
   'Transcription runs locally on your Windows PC with whisper.cpp. No account, no cloud transcription, and no personal API key are required.';

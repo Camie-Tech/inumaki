@@ -48,11 +48,30 @@ export type IpcChannel =
   | 'paste-text'
   | 'copy-text'
   | 'recording-state-change'
+  | 'overlay-state'
   | 'hotkey-triggered';
 
 export type RecordingState = 'idle' | 'recording' | 'processing' | 'success' | 'error';
 
 export interface RecordingStateChange {
   state: RecordingState;
+  message?: string;
+}
+
+/**
+ * State of the floating "listening" HUD overlay shown during the global-hotkey
+ * dictation flow. `listening`/`hiding` are overlay-only; `hiding` triggers the
+ * fade-out animation just before the main process hides the window.
+ */
+export type OverlayState =
+  | 'listening'
+  | 'processing'
+  | 'success'
+  | 'error'
+  | 'hiding'
+  | 'idle';
+
+export interface OverlayStateChange {
+  state: OverlayState;
   message?: string;
 }

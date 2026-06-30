@@ -33,7 +33,7 @@ Honest parity matrix. "Inumaki (today)" reflects shipped v0.1.1 plus the known-b
 | **Per-app profiles** | ❌ | ✅ Tone-by-app | ✅ VoiceInk Power Mode |
 | **Languages** | English only (honest) | ✅ 100+ (uneven) | ✅ Multilingual via model |
 | **Platforms** | Windows x64 only | Mac / Win / iOS / Android | ✅ Cross-platform |
-| **Configurable hotkey / PTT + toggle** | ❌ One hardcoded `Ctrl+Shift+Space` | ✅ Up to 4 bindings, PTT + hands-free | ✅ Configurable |
+| **Configurable hotkey / PTT + toggle** | ❌ One hardcoded `Windows+Alt` | ✅ Up to 4 bindings, PTT + hands-free | ✅ Configurable |
 | **Status HUD / listening indicator** | ❌ | ✅ Flow Bar | ✅ Status pill |
 | **History / re-insert** | ❌ | ⚠️ Scratchpad | ⚠️ Some |
 | **Auto-update + code signing** | ❌ Unsigned → SmartScreen | ✅ Signed | ⚠️ Mixed |
@@ -66,7 +66,7 @@ These are not roadmap items; they are the product. Nothing in §4 ships until th
 ### P0.4 — Model bundling & load reliability
 - Verify model presence + checksum on launch; clear error + recovery if missing/corrupt; pin the whisper.cpp/ggml version; lay groundwork for on-demand model download. **Effort: S.**
 
-**Exit criteria for P0 (ship as v0.1.2):** Press `Ctrl+Shift+Space` in Notepad, Word, Chrome, VS Code, and Slack → speak → clean text reliably appears at the cursor, prior clipboard intact, in ≥99% of attempts. **Until this passes, do not market against Wispr.**
+**Exit criteria for P0 (ship as v0.1.2):** Press `Windows+Alt` in Notepad, Word, Chrome, VS Code, and Slack → speak → clean text reliably appears at the cursor, prior clipboard intact, in ≥99% of attempts. **Until this passes, do not market against Wispr.**
 
 ---
 
